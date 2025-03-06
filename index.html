@@ -32,7 +32,8 @@
       padding: 8px;
       font-size: 14px;
       font-weight: bold;
-      position: relative;
+      position: fixed;
+      top: 0;
       width: 100%;
       z-index: 10;
     }
@@ -51,7 +52,6 @@
 
     .navItem:focus {
       border: 2px solid #007bff;
-      border-color: #007bff;
     }
 
     button {
@@ -93,11 +93,16 @@
       background-color: #f4f4f9;
       color: #333;
       height: 100vh;
+      padding-top: 40px; /* Space for fixed header */
     }
 
     #loginContainer {
       width: 90%;
       text-align: center;
+    }
+
+    #mainPage {
+      padding-top: 40px; /* Space for fixed header */
     }
 
     #privateChatList {
@@ -368,6 +373,12 @@
     .custom-alert .navItem {
       width: 100%;
     }
+
+    .button-container {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -491,7 +502,7 @@
       };
     }
 
-    function showCustomPrompt(message, callback) {
+    function showCustomPrompt(message, callback, validOptions = null) {
       isAlertActive = true;
       const alertBox = document.createElement("div");
       alertBox.className = "custom-alert";
@@ -509,6 +520,12 @@
 
       okButton.onclick = () => {
         const value = input.value.trim();
+        if (validOptions && (!value || !validOptions.includes(value))) {
+          showCustomAlert("Please select one option.", () => {
+            input.focus();
+          });
+          return;
+        }
         document.body.removeChild(alertBox);
         isAlertActive = false;
         callback(value);
@@ -528,6 +545,47 @@
         if (e.key === "ArrowUp") {
           input.focus();
         }
+      };
+    }
+
+    function showConfirmPrompt(message, callback) {
+      isAlertActive = true;
+      const alertBox = document.createElement("div");
+      alertBox.className = "custom-alert";
+      alertBox.innerHTML = `
+        <div class="custom-alert-header">Chit Chat</div>
+        <p>${message}</p>
+        <div class="button-container">
+          <button id="confirmOkButton" class="navItem">OK</button>
+          <button id="confirmCancelButton" class="navItem">Cancel</button>
+        </div>
+      `;
+      document.body.appendChild(alertBox);
+
+      const okButton = document.getElementById("confirmOkButton");
+      const cancelButton = document.getElementById("confirmCancelButton");
+      okButton.focus();
+
+      okButton.onclick = () => {
+        document.body.removeChild(alertBox);
+        isAlertActive = false;
+        callback(true);
+      };
+
+      cancelButton.onclick = () => {
+        document.body.removeChild(alertBox);
+        isAlertActive = false;
+        callback(false);
+      };
+
+      okButton.onkeydown = (e) => {
+        if (e.key === "Enter") okButton.click();
+        if (e.key === "ArrowRight") cancelButton.focus();
+      };
+
+      cancelButton.onkeydown = (e) => {
+        if (e.key === "Enter") cancelButton.click();
+        if (e.key === "ArrowLeft") okButton.focus();
       };
     }
 
@@ -590,10 +648,10 @@
         onready: ad => {
           const previouslyFocusedElement = document.activeElement;
           ad.call('display');
-          ad.on('display', () => softKeysContainer.style.display = "none");
+          ad.on('display', () => softKeysContainer.style.display = chatPage.classList.contains("active") ? "block" : "none");
           ad.on('close', () => {
             if (previouslyFocusedElement) previouslyFocusedElement.focus();
-            softKeysContainer.style.display = "block";
+            softKeysContainer.style.display = chatPage.classList.contains("active") ? "block" : "none";
           });
         }
       });
@@ -702,7 +760,7 @@
                         document.getElementById("searchInput").focus();
                       });
                     }
-                  });
+                  }, ["1", "2", "3"]);
                 } else {
                   openChat(partnerName);
                   markMessagesAsSeen(partnerName, userElement);
@@ -846,7 +904,7 @@
       chatBox.innerHTML = "";
       mainPage.classList.remove("active");
       chatPage.classList.add("active");
-      softKeysContainer.classList.add("active");
+      softKeysContainer.classList.add("active"); // Show footer on chat page
       chatHeader.textContent = `Chat with ${chatType}`;
       processedMessages.clear();
 
@@ -1050,8 +1108,8 @@
             isUserBlocked(searchName, username)
           ]).then(([userBlocked, blockedByUser]) => {
             if (userBlocked) {
-              showCustomAlert(`User ${searchName} is blocked. Do you want to unblock and chat?`, (ok) => {
-                if (ok) {
+              showConfirmPrompt(`User ${searchName} is blocked. Do you want to unblock and chat?`, (confirmed) => {
+                if (confirmed) {
                   unblockUser(username, searchName);
                   showCustomAlert("User unblocked! Starting private chat...", () => {
                     openChat(searchName);
@@ -1159,10 +1217,15 @@
         if (alertBox) {
           const input = alertBox.querySelector("#promptInput");
           const okButton = alertBox.querySelector("#promptOkButton") || alertBox.querySelector("#alertOkButton");
-          if (e.key === "ArrowDown" && document.activeElement === input) {
+          const cancelButton = alertBox.querySelector("#confirmCancelButton");
+          if (input && e.key === "ArrowDown" && document.activeElement === input) {
             okButton.focus();
-          } else if (e.key === "ArrowUp" && document.activeElement === okButton) {
+          } else if (okButton && e.key === "ArrowUp" && document.activeElement === okButton) {
             if (input) input.focus();
+          } else if (cancelButton && e.key === "ArrowRight" && document.activeElement === okButton) {
+            cancelButton.focus();
+          } else if (cancelButton && e.key === "ArrowLeft" && document.activeElement === cancelButton) {
+            okButton.focus();
           }
         }
         return;
@@ -1226,7 +1289,7 @@
                 firebase.database().ref(`privateChats/${currentChatType}/${username}/${messageId}`).remove();
                 activeElement.parentElement.remove();
               }
-            });
+            }, ["1", "2"]);
           } else {
             showEmojiContainer(activeElement.parentElement);
           }
@@ -1237,7 +1300,7 @@
         if (chatPage.classList.contains("active")) {
           chatPage.classList.remove("active");
           mainPage.classList.add("active");
-          softKeysContainer.classList.remove("active");
+          softKeysContainer.classList.remove("active"); // Hide footer on main page
           document.getElementById("searchInput").focus();
           if (chatRef) chatRef.off();
           if (otherChatRef) otherChatRef.off();
