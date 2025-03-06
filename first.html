@@ -1,0 +1,97 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Chit Chat App</title>  
+    <style>  
+        body {  
+            font-family: Arial, sans-serif;  
+            background-color: #f9f9f9;  
+            margin: 0;  
+            padding: 0;  
+            font-size: 14px;  
+        }  
+        .container {  
+            max-width: 220px;  
+            margin: 15px auto;  
+            padding: 10px;  
+            background-color: #ffffff;  
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);  
+            border-radius: 5px;  
+        }  
+        h1 {  
+            text-align: center;  
+            color: #333;  
+            font-size: 16px;  
+            margin-bottom: 5px;  
+        }  
+        h2 {  
+            font-size: 14px;  
+            text-align: center;  
+            color: #555;  
+            margin-bottom: 10px;  
+        }  
+        ul {  
+            list-style-type: square;  
+            padding-left: 15px;  
+            color: #444;  
+        }  
+        li {  
+            margin-bottom: 6px;  
+        }  
+        .red {  
+            color: red;  
+            font-weight: bold;  
+        }  
+        .black {  
+            color: black;  
+            font-weight: bold;  
+        }  
+        .green {  
+            color: green;  
+            font-weight: bold;  
+        }  
+        .highlight {  
+            color: #007bff;  
+            font-weight: bold;  
+        }  
+        p {  
+            text-align: center;  
+            font-size: 12px;  
+            color: #777;  
+            margin-top: 10px;  
+        }  
+    </style>  
+    <script>  
+        document.addEventListener("keydown", function(event) {  
+            if (event.key === "Enter") {  
+                window.location.href = "index.html";  
+            }  
+        });  
+    </script>  
+</head>  
+<body>  
+    <div class="container">  
+        <h1>Chit Chat</h1>  
+        <h2>How to Use (v1.0.42)</h2>  
+        <ul>  
+         <li><span class="highlight">Foucs</span> press 5 key to focus on messges<span class="g"></span>.</li>
+            <li><span class="highlight">Message Seen:</span> When a message is seen, the meessge color turn <span class="green">green</span>.</li>  <li><span class="highlight">online status:</span> If the user name is green its mean user is online .</li>  
+            <li><span class="highlight">Notification:</span> You will now receive a notification for new messages.</li>  
+            <li><span class="highlight">Private Chat Deletion:</span> You can now delete private chats.</li>  
+            <li><span class="highlight">Image Deletion:</span> You can now delete sent images.</li>  
+            <li><span class="highlight">Emoji Reactions:</span> You can now react to messages with emojis.</li>  
+            <li><span class="highlight">Private Chat:</span> now user send images.</li>  
+            <li><span class="highlight">Groups:</span> creat gropus and chat togather.</li>  
+            <li><span class="highlight">More bug fixes & stability improvements.</span></li>  
+            <li><span class="highlight">World Chat:</span> Chat with everyone in real-time.</li>  
+            <li><span class="highlight">Private Chat:</span> Find and chat with specific users.</li>  
+            <li>If the username is <span class="red">red</span>, it means they sent you an unread message.</li>  
+            <li>If the username is <span class="black">black</span>, it means no new messages.</li>  
+            <li>If the username is <span class="green">green</span>, it means  user is online .</li>  
+        </ul>  
+        <p>Stay connected anytime, anywhere! <br> Need help? <span class="highlight">Reach us at kaiosappsuggestions@gmail.com</span>.</p>  
+    </div>  
+</body>  
+</html>

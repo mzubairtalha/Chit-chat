@@ -1,0 +1,45 @@
+{
+  "name": "Chit Chat",
+  "display": "Chit Chat",
+  "version": "1.0.42",
+  "type": "web",
+  "description": "Chit Chat lets you connect with friends through private chats, create group chats, and join global chats. Chat with anyone, make new friends, start a romantic relationship, or simply have fun. Find your GF, BF, or just enjoy some masti with your friends! Now you can also send images in chats for a more engaging experience. New features in this update include a typing indicator to show when friends are typing, and a 'left the chat' message for better chat flow. Stay connected for more exciting updates!",
+  "subtitle": "Private,Group Chats,Make Friends & Enjoy",
+  "launch_path": "/first.html",
+  "default_locale": "en-US",
+  "locales": {
+    "en-US": {
+      "name": "Chit Chat",
+      "description": "Chit Chat lets you connect with friends through private chats, create group chats, and join global chats. Chat with anyone, make new friends, start a romantic relationship, or simply have fun. Find your GF, BF, or just enjoy some masti with your friends! Now you can also send images in chats for a more engaging experience. New features in this update include a typing indicator to show when friends are typing, and a 'left the chat' message for better chat flow. Stay connected for more exciting updates!",
+      "subtitle": "Private,Group Chats,Make Friends & Enjoy"
+    }
+  },
+  "icons": {
+    "56": "/icons/icon56x56.png",
+    "112": "/icons/icon112x112.png"
+  },
+  "origin": "app://chitchat.app.com",
+  "permissions": {  
+    "mobiledata": {},  
+    "wifidata": {},  
+    "systemXHR": {},  
+    "desktop-notification": {},  
+    "push": {},  
+    "serviceWorker": {},  
+    "audio-capture": {},  
+    "microphone": {},  
+    "audio-playback": {},  
+    "media": {}  
+  },
+  "developer": {
+    "name": "M Zubair Talha",
+    "url": "http://zubitechofficial.blogspot.com"
+  },
+  "priority": "high",
+  "cursor": false,
+  "dependencies": {
+    "ads-sdk": "1.5.8"
+  },
+  "theme_color": "#F7FCFE",
+  "fullscreen": "true"
+}
