@@ -93,6 +93,7 @@
       background: linear-gradient(45deg, #ff6f61, #ff9a8b);
       color: white;
       position: relative;
+      height: 100vh; /* Full height for KaiOS */
     }
 
     #loginContainer {
@@ -561,14 +562,14 @@
       document.body.appendChild(alertBox);
 
       const okButton = document.getElementById("alertOkButton");
-      okButton.focus(); // Focus on OK button when alert appears
+      okButton.focus();
       okButton.onclick = () => {
         document.body.removeChild(alertBox);
         if (callback) callback(true);
       };
 
       okButton.onkeydown = (e) => {
-        if (e.key === "Enter") okButton.click(); // Hide alert on Enter key
+        if (e.key === "Enter") okButton.click();
       };
     }
 
@@ -685,9 +686,10 @@
             showKaiAd();
             setInterval(showKaiAd, 2 * 60 * 1000);
           } else {
-            showCustomAlert("Incorrect password. Please try again.");
-            passwordInput.value = "";
-            passwordInput.focus();
+            showCustomAlert("Incorrect password. Please try again.", () => {
+              passwordInput.value = "";
+              passwordInput.focus();
+            });
           }
         } else {
           firebase.database().ref("users/" + enteredUsername).set({
@@ -755,7 +757,7 @@
             userElement.onkeydown = function (e) {
               if (e.key === "Enter") {
                 if (!shownAlerts.has(partnerName)) {
-                  showCustomPrompt(`Select an option for ${partnerName}:\nOptions\n1. Chat\n2. Delete\n3. Block`, (choice) => {
+                  showCustomPrompt(`Select an option for ${partnerName}:\nOptions:\n1. Chat\n2. Delete\n3. Block`, (choice) => {
                     shownAlerts.add(partnerName);
                     if (choice === "1") {
                       openChat(partnerName);
@@ -1278,7 +1280,7 @@
         } else if (activeElement.className.includes("message")) {
           const img = activeElement.querySelector("img");
           if (img) {
-            showCustomPrompt("Select an option:\nOptions\n1. Fullscreen\n2. Delete", (choice) => {
+            showCustomPrompt("Select an option:\nOptions:\n1. Fullscreen\n2. Delete", (choice) => {
               if (choice === "1") {
                 toggleFullScreen(img);
               } else if (choice === "2") {
@@ -1299,7 +1301,7 @@
           chatPage.classList.remove("active");
           mainPage.classList.add("active");
           softKeysContainer.classList.remove("active");
-          document.getElementById("searchInput").focus(); // Focus on search input when back to main page
+          document.getElementById("searchInput").focus(); // Focus on search input after back
           if (chatRef) chatRef.off();
           if (otherChatRef) otherChatRef.off();
         }
@@ -1315,8 +1317,8 @@
           pressCount = 0;
         }
       }
-      if (e.key === "2") chatBox.scrollTop += 50;
-      if (e.key === "8") chatBox.scrollTop -= 50;
+      if (e.key === "8") chatBox.scrollTop += 50;
+      if (e.key === "2") chatBox.scrollTop -= 50;
     });
   </script>
 </body>
