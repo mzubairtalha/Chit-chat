@@ -561,14 +561,14 @@
       document.body.appendChild(alertBox);
 
       const okButton = document.getElementById("alertOkButton");
-      okButton.focus();
+      okButton.focus(); // Focus on OK button when alert appears
       okButton.onclick = () => {
         document.body.removeChild(alertBox);
         if (callback) callback(true);
       };
 
       okButton.onkeydown = (e) => {
-        if (e.key === "Enter") okButton.click();
+        if (e.key === "Enter") okButton.click(); // Hide alert on Enter key
       };
     }
 
@@ -755,7 +755,7 @@
             userElement.onkeydown = function (e) {
               if (e.key === "Enter") {
                 if (!shownAlerts.has(partnerName)) {
-                  showCustomPrompt(`Select an option for ${partnerName}:\n1. Chat\n2. Delete\n3. Block`, (choice) => {
+                  showCustomPrompt(`Select an option for ${partnerName}:\nOptions\n1. Chat\n2. Delete\n3. Block`, (choice) => {
                     shownAlerts.add(partnerName);
                     if (choice === "1") {
                       openChat(partnerName);
@@ -1278,7 +1278,7 @@
         } else if (activeElement.className.includes("message")) {
           const img = activeElement.querySelector("img");
           if (img) {
-            showCustomPrompt("Select an option:\n1. Fullscreen\n2. Delete", (choice) => {
+            showCustomPrompt("Select an option:\nOptions\n1. Fullscreen\n2. Delete", (choice) => {
               if (choice === "1") {
                 toggleFullScreen(img);
               } else if (choice === "2") {
@@ -1299,7 +1299,7 @@
           chatPage.classList.remove("active");
           mainPage.classList.add("active");
           softKeysContainer.classList.remove("active");
-          document.querySelector(".navItem").focus();
+          document.getElementById("searchInput").focus(); // Focus on search input when back to main page
           if (chatRef) chatRef.off();
           if (otherChatRef) otherChatRef.off();
         }
