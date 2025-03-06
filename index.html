@@ -102,7 +102,7 @@
     }
 
     #mainPage {
-      padding-top: 40px; /* Space for fixed header */
+      padding-top: 50px; /* Increased padding to avoid overlap with header */
     }
 
     #privateChatList {
@@ -395,8 +395,8 @@
     <header>Private Chat</header>
     <input type="text" id="searchInput" class="navItem" placeholder="Search for a user" tabindex="1" />
     <button id="searchButton" class="navItem" tabindex="2">Search</button>
-    <button id="worldChatButton" class="navItem" tabindex="3" onclick="window.location.href='world_chat.html'">World Chat</button>
-    <button id="groupChatButton" class="navItem" tabindex="4" onclick="window.location.href='groups.html'">Group Chat</button>
+    <button id="worldChatButton" class="navItem" tabindex="3" onclick="navigateTo('world_chat.html')">World Chat</button>
+    <button id="groupChatButton" class="navItem" tabindex="4" onclick="navigateTo('groups.html')">Group Chat</button>
     <button id="changeBackgroundButton" class="navItem" tabindex="5">Change Chat Background</button>
     <button id="changeThemeButton" class="navItem" tabindex="6">Change Theme</button>
     <div id="privateChatList">
@@ -472,6 +472,9 @@
       }
       if (username && password) {
         authenticateUser(username, password);
+        mainPage.classList.add("active");
+        loginPage.classList.remove("active");
+        document.getElementById("searchInput").focus();
       } else {
         loginPage.classList.add("active");
         usernameInput.focus();
@@ -612,6 +615,10 @@
       }
     });
 
+    function navigateTo(url) {
+      window.location.href = url;
+    }
+
     function registerPushNotifications() {
       if ('navigator.mozApps' in window) {
         const request = navigator.mozApps.getSelf();
@@ -673,6 +680,7 @@
             registerPushNotifications();
             showKaiAd();
             setInterval(showKaiAd, 2 * 60 * 1000);
+            document.getElementById("searchInput").focus();
           } else {
             showCustomAlert("Incorrect password. Please try again.", () => {
               passwordInput.value = "";
@@ -696,6 +704,7 @@
           registerPushNotifications();
           showKaiAd();
           setInterval(showKaiAd, 2 * 60 * 1000);
+          document.getElementById("searchInput").focus();
         }
       });
     }
