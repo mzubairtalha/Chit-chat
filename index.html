@@ -90,18 +90,14 @@
     #loginPage {
       justify-content: center;
       align-items: center;
-      background: linear-gradient(45deg, #ff6f61, #ff9a8b);
-      color: white;
-      position: relative;
-      height: 100vh; /* Full height for KaiOS */
+      background-color: #f4f4f9;
+      color: #333;
+      height: 100vh;
     }
 
     #loginContainer {
-      width: 80%;
+      width: 90%;
       text-align: center;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
     }
 
     #privateChatList {
@@ -179,7 +175,7 @@
     }
 
     .received {
-      background: linear-gradient(45deg, #f0f0f0, #ffffff);
+      background: linear-gradient(145deg, #f0f0f0, #ffffff);
       color: #333;
     }
 
@@ -221,6 +217,7 @@
       border: none;
       cursor: pointer;
     }
+
     #imageButton:focus {
       border: 2px solid #007bff;
     }
@@ -246,6 +243,7 @@
       margin: 0;
       align-self: center;
     }
+
     #sendButton:focus {
       border: 2px solid #007bff;
     }
@@ -320,113 +318,28 @@
       background: #e0e0e0;
     }
 
-    /* Existing Themes */
-    .rainbow-theme {
-      background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff);
-      color: #333;
-    }
-
-    .skyway-theme {
-      background: linear-gradient(180deg, #87CEEB, #E0F7FA);
-      color: #333;
-    }
-
-    .night-theme {
-      background: linear-gradient(180deg, #1a1a2e, #16213e);
-      color: #e0e0e0;
-    }
-
-    .forest-theme {
-      background: linear-gradient(180deg, #2e4f2e, #4a704a);
-      color: #e0e0e0;
-    }
-
-    .sunset-theme {
-      background: linear-gradient(180deg, #ff4500, #ff8c00);
-      color: #333;
-    }
-
-    .ocean-theme {
-      background: linear-gradient(180deg, #1e90ff, #00b7eb);
-      color: #333;
-    }
-
-    .lavender-theme {
-      background: linear-gradient(180deg, #e6e6fa, #d8bfd8);
-      color: #333;
-    }
-
-    .galaxy-theme {
-      background: linear-gradient(180deg, #0d1b2a, #1b263b);
-      color: #e0e0e0;
-    }
-
-    .neon-theme {
-      background: linear-gradient(180deg, #ff00ff, #00ffcc);
-      color: #333;
-    }
-
-    .desert-theme {
-      background: linear-gradient(180deg, #f4a261, #e76f51);
-      color: #333;
-    }
-
-    .aurora-theme {
-      background: linear-gradient(180deg, #2a9d8f, #264653);
-      color: #e0e0e0;
-    }
-
-    .candy-theme {
-      background: linear-gradient(180deg, #ff70a6, #ff9770);
-      color: #333;
-    }
-
-    /* New Themes */
-    .neon-glowing-theme {
-      background: linear-gradient(45deg, #00ffcc, #ff00ff, #00ccff, #ffcc00);
-      color: #fff;
-      text-shadow: 0 0 5px #00ffcc, 0 0 10px #ff00ff;
-    }
-
-    .cosmic-dust-theme {
-      background: linear-gradient(135deg, #1e1e3f, #3f2a5d, #6b4984, #9d75a8);
-      color: #e0e0e0;
-    }
-
-    .tropical-vibe-theme {
-      background: linear-gradient(45deg, #ff6b6b, #ffa07a, #98ff98, #20b2aa);
-      color: #333;
-    }
-
-    .electric-pulse-theme {
-      background: linear-gradient(90deg, #ff007a, #00d4ff, #ff00cc, #00ff7f);
-      color: #fff;
-    }
-
-    .mystic-dawn-theme {
-      background: linear-gradient(180deg, #4b0082, #9400d3, #ff1493, #ff69b4);
-      color: #e0e0e0;
-    }
-
-    .firestorm-theme {
-      background: linear-gradient(45deg, #ff4500, #ff8c00, #ff0000, #dc143c);
-      color: #fff;
-    }
-
-    .glacial-glow-theme {
-      background: linear-gradient(135deg, #00ced1, #4682b4, #00b7eb, #87cefa);
-      color: #333;
-    }
-
-    .retro-wave-theme {
-      background: linear-gradient(90deg, #ff77ff, #00ffff, #ff00ff, #00ffcc);
-      color: #fff;
-    }
-
-    .golden-horizon-theme {
-      background: linear-gradient(180deg, #ffd700, #ff8c00, #ffa500, #ff4500);
-      color: #333;
-    }
+    /* Themes */
+    .rainbow-theme { background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff); color: #333; }
+    .skyway-theme { background: linear-gradient(180deg, #87CEEB, #E0F7FA); color: #333; }
+    .night-theme { background: linear-gradient(180deg, #1a1a2e, #16213e); color: #e0e0e0; }
+    .forest-theme { background: linear-gradient(180deg, #2e4f2e, #4a704a); color: #e0e0e0; }
+    .sunset-theme { background: linear-gradient(180deg, #ff4500, #ff8c00); color: #333; }
+    .ocean-theme { background: linear-gradient(180deg, #1e90ff, #00b7eb); color: #333; }
+    .lavender-theme { background: linear-gradient(180deg, #e6e6fa, #d8bfd8); color: #333; }
+    .galaxy-theme { background: linear-gradient(180deg, #0d1b2a, #1b263b); color: #e0e0e0; }
+    .neon-theme { background: linear-gradient(180deg, #ff00ff, #00ffcc); color: #333; }
+    .desert-theme { background: linear-gradient(180deg, #f4a261, #e76f51); color: #333; }
+    .aurora-theme { background: linear-gradient(180deg, #2a9d8f, #264653); color: #e0e0e0; }
+    .candy-theme { background: linear-gradient(180deg, #ff70a6, #ff9770); color: #333; }
+    .neon-glowing-theme { background: linear-gradient(45deg, #00ffcc, #ff00ff, #00ccff, #ffcc00); color: #fff; text-shadow: 0 0 5px #00ffcc, 0 0 10px #ff00ff; }
+    .cosmic-dust-theme { background: linear-gradient(135deg, #1e1e3f, #3f2a5d, #6b4984, #9d75a8); color: #e0e0e0; }
+    .tropical-vibe-theme { background: linear-gradient(45deg, #ff6b6b, #ffa07a, #98ff98, #20b2aa); color: #333; }
+    .electric-pulse-theme { background: linear-gradient(90deg, #ff007a, #00d4ff, #ff00cc, #00ff7f); color: #fff; }
+    .mystic-dawn-theme { background: linear-gradient(180deg, #4b0082, #9400d3, #ff1493, #ff69b4); color: #e0e0e0; }
+    .firestorm-theme { background: linear-gradient(45deg, #ff4500, #ff8c00, #ff0000, #dc143c); color: #fff; }
+    .glacial-glow-theme { background: linear-gradient(135deg, #00ced1, #4682b4, #00b7eb, #87cefa); color: #333; }
+    .retro-wave-theme { background: linear-gradient(90deg, #ff77ff, #00ffff, #ff00ff, #00ffcc); color: #fff; }
+    .golden-horizon-theme { background: linear-gradient(180deg, #ffd700, #ff8c00, #ffa500, #ff4500); color: #333; }
 
     /* Custom Alert Styles */
     .custom-alert {
@@ -451,11 +364,15 @@
       border-radius: 4px 4px 0 0;
       margin: -20px -20px 10px -20px;
     }
+
+    .custom-alert .navItem {
+      width: 100%;
+    }
   </style>
 </head>
 <body>
   <div id="loginPage" class="active">
-    <header style="position: absolute; top: 0;">Chit Chat - Login</header>
+    <header>Chit Chat - Login</header>
     <div id="loginContainer">
       <input type="text" id="usernameInput" class="navItem" placeholder="Enter your name" tabindex="1" />
       <input type="password" id="passwordInput" class="navItem" placeholder="Enter your password" tabindex="2" />
@@ -531,8 +448,8 @@
     let pressCount = 0;
     let currentEmojiContainer = null;
     let shownAlerts = new Set();
+    let isAlertActive = false;
 
-    // Load saved background and theme
     document.addEventListener("DOMContentLoaded", () => {
       const savedBackground = localStorage.getItem("chatBackground");
       const savedTheme = localStorage.getItem("chatTheme");
@@ -550,14 +467,14 @@
       }
     });
 
-    // Custom Alert Function
     function showCustomAlert(message, callback) {
+      isAlertActive = true;
       const alertBox = document.createElement("div");
       alertBox.className = "custom-alert";
       alertBox.innerHTML = `
         <div class="custom-alert-header">Chit Chat</div>
         <p>${message}</p>
-        <button id="alertOkButton">OK</button>
+        <button id="alertOkButton" class="navItem">OK</button>
       `;
       document.body.appendChild(alertBox);
 
@@ -565,6 +482,7 @@
       okButton.focus();
       okButton.onclick = () => {
         document.body.removeChild(alertBox);
+        isAlertActive = false;
         if (callback) callback(true);
       };
 
@@ -573,15 +491,15 @@
       };
     }
 
-    // Custom Prompt Function
     function showCustomPrompt(message, callback) {
+      isAlertActive = true;
       const alertBox = document.createElement("div");
       alertBox.className = "custom-alert";
       alertBox.innerHTML = `
         <div class="custom-alert-header">Chit Chat</div>
         <p>${message}</p>
         <input type="text" id="promptInput" class="navItem" />
-        <button id="promptOkButton">OK</button>
+        <button id="promptOkButton" class="navItem">OK</button>
       `;
       document.body.appendChild(alertBox);
 
@@ -592,11 +510,24 @@
       okButton.onclick = () => {
         const value = input.value.trim();
         document.body.removeChild(alertBox);
+        isAlertActive = false;
         callback(value);
       };
 
       input.onkeydown = (e) => {
         if (e.key === "Enter") okButton.click();
+      };
+
+      input.onkeydown = (e) => {
+        if (e.key === "ArrowDown") {
+          okButton.focus();
+        }
+      };
+
+      okButton.onkeydown = (e) => {
+        if (e.key === "ArrowUp") {
+          input.focus();
+        }
       };
     }
 
@@ -610,7 +541,6 @@
       authenticateUser(enteredUsername, enteredPassword);
     };
 
-    // Add Enter key support for login inputs
     usernameInput.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         passwordInput.focus();
@@ -768,7 +698,9 @@
                     } else if (choice === "3") {
                       blockUser(username, partnerName);
                       userElement.remove();
-                      showCustomAlert(`${partnerName} has been blocked and chat history deleted.`);
+                      showCustomAlert(`${partnerName} has been blocked and chat history deleted.`, () => {
+                        document.getElementById("searchInput").focus();
+                      });
                     }
                   });
                 } else {
@@ -1121,21 +1053,29 @@
               showCustomAlert(`User ${searchName} is blocked. Do you want to unblock and chat?`, (ok) => {
                 if (ok) {
                   unblockUser(username, searchName);
-                  showCustomAlert("User unblocked! Starting private chat...");
-                  openChat(searchName);
-                  updatePrivateChatList(username, searchName);
+                  showCustomAlert("User unblocked! Starting private chat...", () => {
+                    openChat(searchName);
+                    updatePrivateChatList(username, searchName);
+                  });
+                } else {
+                  document.getElementById("searchInput").focus();
                 }
               });
             } else if (blockedByUser) {
-              showCustomAlert(`${searchName} has blocked you.`);
+              showCustomAlert(`${searchName} has blocked you.`, () => {
+                document.getElementById("searchInput").focus();
+              });
             } else {
-              showCustomAlert("User found! Starting private chat...");
-              openChat(searchName);
-              updatePrivateChatList(username, searchName);
+              showCustomAlert("User found! Starting private chat...", () => {
+                openChat(searchName);
+                updatePrivateChatList(username, searchName);
+              });
             }
           });
         } else {
-          showCustomAlert("User not found.");
+          showCustomAlert("User not found.", () => {
+            document.getElementById("searchInput").focus();
+          });
         }
       });
     };
@@ -1164,27 +1104,10 @@
 
     changeThemeButton.onclick = function () {
       const themes = [
-        "rainbow-theme",
-        "skyway-theme",
-        "night-theme",
-        "forest-theme",
-        "sunset-theme",
-        "ocean-theme",
-        "lavender-theme",
-        "galaxy-theme",
-        "neon-theme",
-        "desert-theme",
-        "aurora-theme",
-        "candy-theme",
-        "neon-glowing-theme",
-        "cosmic-dust-theme",
-        "tropical-vibe-theme",
-        "electric-pulse-theme",
-        "mystic-dawn-theme",
-        "firestorm-theme",
-        "glacial-glow-theme",
-        "retro-wave-theme",
-        "golden-horizon-theme"
+        "rainbow-theme", "skyway-theme", "night-theme", "forest-theme", "sunset-theme", "ocean-theme",
+        "lavender-theme", "galaxy-theme", "neon-theme", "desert-theme", "aurora-theme", "candy-theme",
+        "neon-glowing-theme", "cosmic-dust-theme", "tropical-vibe-theme", "electric-pulse-theme",
+        "mystic-dawn-theme", "firestorm-theme", "glacial-glow-theme", "retro-wave-theme", "golden-horizon-theme"
       ];
       const currentTheme = document.body.className;
       const currentIndex = themes.indexOf(currentTheme);
@@ -1231,6 +1154,20 @@
     }
 
     document.addEventListener("keydown", function (e) {
+      if (isAlertActive) {
+        const alertBox = document.querySelector(".custom-alert");
+        if (alertBox) {
+          const input = alertBox.querySelector("#promptInput");
+          const okButton = alertBox.querySelector("#promptOkButton") || alertBox.querySelector("#alertOkButton");
+          if (e.key === "ArrowDown" && document.activeElement === input) {
+            okButton.focus();
+          } else if (e.key === "ArrowUp" && document.activeElement === okButton) {
+            if (input) input.focus();
+          }
+        }
+        return;
+      }
+
       const fullscreenImage = document.querySelector(".fullscreen-image");
       if (fullscreenImage) {
         fullscreenImage.classList.remove("fullscreen-image");
@@ -1301,7 +1238,7 @@
           chatPage.classList.remove("active");
           mainPage.classList.add("active");
           softKeysContainer.classList.remove("active");
-          document.getElementById("searchInput").focus(); // Focus on search input after back
+          document.getElementById("searchInput").focus();
           if (chatRef) chatRef.off();
           if (otherChatRef) otherChatRef.off();
         }
