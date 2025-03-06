@@ -72,6 +72,7 @@
       background: linear-gradient(45deg, #00bfff, #1e90ff);
     }
 
+    #loginPage,
     #mainPage,
     #chatPage {
       flex: 1;
@@ -79,10 +80,27 @@
       display: none;
     }
 
+    #loginPage.active,
     #mainPage.active,
     #chatPage.active {
       display: flex;
       flex-direction: column;
+    }
+
+    #loginPage {
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(45deg, #ff6f61, #ff9a8b);
+      color: white;
+      position: relative;
+    }
+
+    #loginContainer {
+      width: 80%;
+      text-align: center;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
     }
 
     #privateChatList {
@@ -301,7 +319,7 @@
       background: #e0e0e0;
     }
 
-    /* Themes */
+    /* Existing Themes */
     .rainbow-theme {
       background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff);
       color: #333;
@@ -342,7 +360,6 @@
       color: #e0e0e0;
     }
 
-    /* New Themes */
     .neon-theme {
       background: linear-gradient(180deg, #ff00ff, #00ffcc);
       color: #333;
@@ -362,10 +379,90 @@
       background: linear-gradient(180deg, #ff70a6, #ff9770);
       color: #333;
     }
+
+    /* New Themes */
+    .neon-glowing-theme {
+      background: linear-gradient(45deg, #00ffcc, #ff00ff, #00ccff, #ffcc00);
+      color: #fff;
+      text-shadow: 0 0 5px #00ffcc, 0 0 10px #ff00ff;
+    }
+
+    .cosmic-dust-theme {
+      background: linear-gradient(135deg, #1e1e3f, #3f2a5d, #6b4984, #9d75a8);
+      color: #e0e0e0;
+    }
+
+    .tropical-vibe-theme {
+      background: linear-gradient(45deg, #ff6b6b, #ffa07a, #98ff98, #20b2aa);
+      color: #333;
+    }
+
+    .electric-pulse-theme {
+      background: linear-gradient(90deg, #ff007a, #00d4ff, #ff00cc, #00ff7f);
+      color: #fff;
+    }
+
+    .mystic-dawn-theme {
+      background: linear-gradient(180deg, #4b0082, #9400d3, #ff1493, #ff69b4);
+      color: #e0e0e0;
+    }
+
+    .firestorm-theme {
+      background: linear-gradient(45deg, #ff4500, #ff8c00, #ff0000, #dc143c);
+      color: #fff;
+    }
+
+    .glacial-glow-theme {
+      background: linear-gradient(135deg, #00ced1, #4682b4, #00b7eb, #87cefa);
+      color: #333;
+    }
+
+    .retro-wave-theme {
+      background: linear-gradient(90deg, #ff77ff, #00ffff, #ff00ff, #00ffcc);
+      color: #fff;
+    }
+
+    .golden-horizon-theme {
+      background: linear-gradient(180deg, #ffd700, #ff8c00, #ffa500, #ff4500);
+      color: #333;
+    }
+
+    /* Custom Alert Styles */
+    .custom-alert {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #ff6f61;
+      border-radius: 6px;
+      padding: 20px;
+      z-index: 10000;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .custom-alert-header {
+      background: linear-gradient(45deg, #ff6f61, #ff9a8b);
+      color: white;
+      padding: 8px;
+      font-weight: bold;
+      border-radius: 4px 4px 0 0;
+      margin: -20px -20px 10px -20px;
+    }
   </style>
 </head>
 <body>
-  <div id="mainPage" class="active">
+  <div id="loginPage" class="active">
+    <header style="position: absolute; top: 0;">Chit Chat - Login</header>
+    <div id="loginContainer">
+      <input type="text" id="usernameInput" class="navItem" placeholder="Enter your name" tabindex="1" />
+      <input type="password" id="passwordInput" class="navItem" placeholder="Enter your password" tabindex="2" />
+      <button id="signInButton" class="navItem" tabindex="3">Sign In</button>
+    </div>
+  </div>
+
+  <div id="mainPage">
     <header>Private Chat</header>
     <input type="text" id="searchInput" class="navItem" placeholder="Search for a user" tabindex="1" />
     <button id="searchButton" class="navItem" tabindex="2">Search</button>
@@ -410,6 +507,7 @@
 
     let username = localStorage.getItem("username");
     let password = localStorage.getItem("password");
+    const loginPage = document.getElementById("loginPage");
     const mainPage = document.getElementById("mainPage");
     const chatPage = document.getElementById("chatPage");
     const chatHeader = document.getElementById("chatHeader");
@@ -421,6 +519,9 @@
     const changeBackgroundButton = document.getElementById("changeBackgroundButton");
     const changeThemeButton = document.getElementById("changeThemeButton");
     const softKeysContainer = document.getElementById("softKeysContainer");
+    const signInButton = document.getElementById("signInButton");
+    const usernameInput = document.getElementById("usernameInput");
+    const passwordInput = document.getElementById("passwordInput");
     let currentChatType = null;
     let messages = [];
     let chatRef = null;
@@ -439,6 +540,86 @@
       }
       if (savedTheme) {
         document.body.className = savedTheme;
+      }
+      if (username && password) {
+        authenticateUser(username, password);
+      } else {
+        loginPage.classList.add("active");
+        usernameInput.focus();
+      }
+    });
+
+    // Custom Alert Function
+    function showCustomAlert(message, callback) {
+      const alertBox = document.createElement("div");
+      alertBox.className = "custom-alert";
+      alertBox.innerHTML = `
+        <div class="custom-alert-header">Chit Chat</div>
+        <p>${message}</p>
+        <button id="alertOkButton">OK</button>
+      `;
+      document.body.appendChild(alertBox);
+
+      const okButton = document.getElementById("alertOkButton");
+      okButton.focus();
+      okButton.onclick = () => {
+        document.body.removeChild(alertBox);
+        if (callback) callback(true);
+      };
+
+      okButton.onkeydown = (e) => {
+        if (e.key === "Enter") okButton.click();
+      };
+    }
+
+    // Custom Prompt Function
+    function showCustomPrompt(message, callback) {
+      const alertBox = document.createElement("div");
+      alertBox.className = "custom-alert";
+      alertBox.innerHTML = `
+        <div class="custom-alert-header">Chit Chat</div>
+        <p>${message}</p>
+        <input type="text" id="promptInput" class="navItem" />
+        <button id="promptOkButton">OK</button>
+      `;
+      document.body.appendChild(alertBox);
+
+      const input = document.getElementById("promptInput");
+      const okButton = document.getElementById("promptOkButton");
+      input.focus();
+
+      okButton.onclick = () => {
+        const value = input.value.trim();
+        document.body.removeChild(alertBox);
+        callback(value);
+      };
+
+      input.onkeydown = (e) => {
+        if (e.key === "Enter") okButton.click();
+      };
+    }
+
+    signInButton.onclick = function () {
+      const enteredUsername = usernameInput.value.trim();
+      const enteredPassword = passwordInput.value.trim();
+      if (!enteredUsername || !enteredPassword) {
+        showCustomAlert("Please enter both username and password.");
+        return;
+      }
+      authenticateUser(enteredUsername, enteredPassword);
+    };
+
+    // Add Enter key support for login inputs
+    usernameInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        passwordInput.focus();
+      }
+    });
+
+    passwordInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        signInButton.focus();
+        signInButton.click();
       }
     });
 
@@ -487,47 +668,44 @@
       });
     }
 
-    window.onload = function () {
-      if (!username) {
-        username = prompt("Enter your name:");
-        if (username) {
-          password = prompt("Enter your password:");
-          authenticateUser(username, password);
-        }
-      } else {
-        loadPrivateChats();
-        setupPresence();
-        registerPushNotifications();
-      }
-      showKaiAd();
-      setInterval(showKaiAd, 2 * 60 * 1000);
-    };
-
-    function authenticateUser(username, password) {
-      firebase.database().ref("users/" + username).once("value", function (snapshot) {
+    function authenticateUser(enteredUsername, enteredPassword) {
+      firebase.database().ref("users/" + enteredUsername).once("value", function (snapshot) {
         if (snapshot.exists()) {
           const userData = snapshot.val();
-          if (userData.password === password) {
+          if (userData.password === enteredPassword) {
+            username = enteredUsername;
+            password = enteredPassword;
             localStorage.setItem("username", username);
             localStorage.setItem("password", password);
+            loginPage.classList.remove("active");
+            mainPage.classList.add("active");
             loadPrivateChats();
             setupPresence();
             registerPushNotifications();
+            showKaiAd();
+            setInterval(showKaiAd, 2 * 60 * 1000);
           } else {
-            alert("Password does not match. Please choose a different name.");
-            window.location.reload();
+            showCustomAlert("Incorrect password. Please try again.");
+            passwordInput.value = "";
+            passwordInput.focus();
           }
         } else {
-          firebase.database().ref("users/" + username).set({
-            name: username,
-            password: password,
+          firebase.database().ref("users/" + enteredUsername).set({
+            name: enteredUsername,
+            password: enteredPassword,
             timestamp: Date.now(),
           });
+          username = enteredUsername;
+          password = enteredPassword;
           localStorage.setItem("username", username);
           localStorage.setItem("password", password);
+          loginPage.classList.remove("active");
+          mainPage.classList.add("active");
           loadPrivateChats();
           setupPresence();
           registerPushNotifications();
+          showKaiAd();
+          setInterval(showKaiAd, 2 * 60 * 1000);
         }
       });
     }
@@ -544,60 +722,84 @@
       });
     }
 
+    function isUserBlocked(blocker, blocked) {
+      return firebase.database().ref(`blocked/${blocker}/${blocked}`).once("value").then(snapshot => snapshot.exists());
+    }
+
+    function blockUser(blocker, blocked) {
+      firebase.database().ref(`blocked/${blocker}/${blocked}`).set(true);
+      firebase.database().ref(`privateChats/${blocker}/${blocked}`).remove();
+      firebase.database().ref(`privateChats/${blocked}/${blocker}`).remove();
+    }
+
+    function unblockUser(blocker, blocked) {
+      firebase.database().ref(`blocked/${blocker}/${blocked}`).remove();
+    }
+
     function loadPrivateChats() {
       privateChatList.innerHTML = "<h4>Your Private Chats:</h4>";
       firebase.database().ref("privateChats/" + username).on("child_added", function (snapshot) {
         const partnerName = snapshot.key;
-        const userElement = document.createElement("div");
-        userElement.className = "user navItem";
-        userElement.textContent = partnerName;
-        userElement.tabIndex = 7;
+        isUserBlocked(username, partnerName).then(blocked => {
+          if (!blocked) {
+            const userElement = document.createElement("div");
+            userElement.className = "user navItem";
+            userElement.textContent = partnerName;
+            userElement.tabIndex = 7;
 
-        userElement.onclick = function () {
-          openChat(partnerName);
-          markMessagesAsSeen(partnerName, userElement);
-        };
-        userElement.onkeydown = function (e) {
-          if (e.key === "Enter") {
-            if (!shownAlerts.has(partnerName)) {
-              const choice = prompt(`Select an option for ${partnerName}:\n1. Chat\n2. Delete`);
-              shownAlerts.add(partnerName);
-              if (choice === "1") {
-                openChat(partnerName);
-                markMessagesAsSeen(partnerName, userElement);
-              } else if (choice === "2") {
-                firebase.database().ref(`privateChats/${username}/${partnerName}`).remove();
-                userElement.remove();
-              }
-            } else {
+            userElement.onclick = function () {
               openChat(partnerName);
               markMessagesAsSeen(partnerName, userElement);
-            }
-          }
-        };
-        privateChatList.appendChild(userElement);
+            };
 
-        const chatRef = firebase.database().ref(`privateChats/${username}/${partnerName}`);
-        chatRef.on("child_added", function (msgSnapshot) {
-          const data = msgSnapshot.val();
-          if (!data.seen && data.from === partnerName) {
-            userElement.style.color = "red";
-            sendPushNotification(data.message || "Image received", partnerName);
-          }
-        });
+            userElement.onkeydown = function (e) {
+              if (e.key === "Enter") {
+                if (!shownAlerts.has(partnerName)) {
+                  showCustomPrompt(`Select an option for ${partnerName}:\n1. Chat\n2. Delete\n3. Block`, (choice) => {
+                    shownAlerts.add(partnerName);
+                    if (choice === "1") {
+                      openChat(partnerName);
+                      markMessagesAsSeen(partnerName, userElement);
+                    } else if (choice === "2") {
+                      firebase.database().ref(`privateChats/${username}/${partnerName}`).remove();
+                      userElement.remove();
+                    } else if (choice === "3") {
+                      blockUser(username, partnerName);
+                      userElement.remove();
+                      showCustomAlert(`${partnerName} has been blocked and chat history deleted.`);
+                    }
+                  });
+                } else {
+                  openChat(partnerName);
+                  markMessagesAsSeen(partnerName, userElement);
+                }
+              }
+            };
+            privateChatList.appendChild(userElement);
 
-        chatRef.on("child_changed", function (msgSnapshot) {
-          const data = msgSnapshot.val();
-          if (data.seen && data.from === partnerName) {
-            const hasUnseenMessages = checkForUnseenMessages(partnerName);
-            if (!hasUnseenMessages) {
+            const chatRef = firebase.database().ref(`privateChats/${username}/${partnerName}`);
+            chatRef.on("child_added", function (msgSnapshot) {
+              const data = msgSnapshot.val();
+              if (!data.seen && data.from === partnerName) {
+                userElement.style.color = "red";
+                sendPushNotification(data.message || "Image received", partnerName);
+              }
+            });
+
+            chatRef.on("child_changed", function (msgSnapshot) {
+              const data = msgSnapshot.val();
+              if (data.seen && data.from === partnerName) {
+                const hasUnseenMessages = checkForUnseenMessages(partnerName);
+                if (!hasUnseenMessages) {
+                  updateUserColor(partnerName, userElement);
+                }
+              }
+            });
+
+            firebase.database().ref(`presence/${partnerName}`).on("value", (snap) => {
               updateUserColor(partnerName, userElement);
-            }
+            });
           }
-        });
-
-        firebase.database().ref(`presence/${partnerName}`).on("value", (snap) => {
-          updateUserColor(partnerName, userElement);
         });
       });
     }
@@ -695,7 +897,7 @@
       receiverChatRef.set(messageData);
 
       if (type === "text") {
-        senderChatRef.update({ seen: false }); // Sender hasn't seen it yet
+        senderChatRef.update({ seen: false });
       }
     }
 
@@ -720,7 +922,6 @@
       chatRef = firebase.database().ref(`privateChats/${username}/${chatType}`);
       otherChatRef = firebase.database().ref(`privateChats/${chatType}/${username}`);
 
-      // Load last 20 messages
       chatRef.orderByChild("timestamp").limitToLast(20).on("child_added", function (snapshot) {
         const messageId = snapshot.key;
         if (processedMessages.has(messageId)) return;
@@ -752,7 +953,6 @@
             messageElement.appendChild(textSpan);
           }
 
-          // Show seen timestamp for sender when receiver sees the message
           if (data.seen && data.seenTimestamp && data.from === username) {
             const timestampSpan = document.createElement("span");
             timestampSpan.className = "seen-timestamp";
@@ -803,7 +1003,6 @@
             }
             reactionSpan.textContent = data.reaction;
           }
-          // Update seen timestamp for sender
           if (data.seen && data.seenTimestamp && data.from === username) {
             let timestampSpan = messageElement.querySelector(".seen-timestamp");
             if (!timestampSpan) {
@@ -908,15 +1107,33 @@
 
     document.getElementById("searchButton").onclick = function () {
       const searchName = document.getElementById("searchInput").value.trim();
-      if (!searchName) return alert("Please enter a name.");
+      if (!searchName) return showCustomAlert("Please enter a name.");
 
       firebase.database().ref("users/" + searchName).once("value", function (snapshot) {
         if (snapshot.exists()) {
-          alert("User found! Starting private chat...");
-          openChat(searchName);
-          updatePrivateChatList(username, searchName);
+          Promise.all([
+            isUserBlocked(username, searchName),
+            isUserBlocked(searchName, username)
+          ]).then(([userBlocked, blockedByUser]) => {
+            if (userBlocked) {
+              showCustomAlert(`User ${searchName} is blocked. Do you want to unblock and chat?`, (ok) => {
+                if (ok) {
+                  unblockUser(username, searchName);
+                  showCustomAlert("User unblocked! Starting private chat...");
+                  openChat(searchName);
+                  updatePrivateChatList(username, searchName);
+                }
+              });
+            } else if (blockedByUser) {
+              showCustomAlert(`${searchName} has blocked you.`);
+            } else {
+              showCustomAlert("User found! Starting private chat...");
+              openChat(searchName);
+              updatePrivateChatList(username, searchName);
+            }
+          });
         } else {
-          alert("User not found.");
+          showCustomAlert("User not found.");
         }
       });
     };
@@ -956,7 +1173,16 @@
         "neon-theme",
         "desert-theme",
         "aurora-theme",
-        "candy-theme"
+        "candy-theme",
+        "neon-glowing-theme",
+        "cosmic-dust-theme",
+        "tropical-vibe-theme",
+        "electric-pulse-theme",
+        "mystic-dawn-theme",
+        "firestorm-theme",
+        "glacial-glow-theme",
+        "retro-wave-theme",
+        "golden-horizon-theme"
       ];
       const currentTheme = document.body.className;
       const currentIndex = themes.indexOf(currentTheme);
@@ -1052,15 +1278,16 @@
         } else if (activeElement.className.includes("message")) {
           const img = activeElement.querySelector("img");
           if (img) {
-            const choice = prompt("Select an option:\n1. Fullscreen\n2. Delete");
-            if (choice === "1") {
-              toggleFullScreen(img);
-            } else if (choice === "2") {
-              const messageId = activeElement.id.replace("msg-", "");
-              firebase.database().ref(`privateChats/${username}/${currentChatType}/${messageId}`).remove();
-              firebase.database().ref(`privateChats/${currentChatType}/${username}/${messageId}`).remove();
-              activeElement.parentElement.remove();
-            }
+            showCustomPrompt("Select an option:\n1. Fullscreen\n2. Delete", (choice) => {
+              if (choice === "1") {
+                toggleFullScreen(img);
+              } else if (choice === "2") {
+                const messageId = activeElement.id.replace("msg-", "");
+                firebase.database().ref(`privateChats/${username}/${currentChatType}/${messageId}`).remove();
+                firebase.database().ref(`privateChats/${currentChatType}/${username}/${messageId}`).remove();
+                activeElement.parentElement.remove();
+              }
+            });
           } else {
             showEmojiContainer(activeElement.parentElement);
           }
