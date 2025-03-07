@@ -8,25 +8,36 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="kaiads.v5.min.js"></script> 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f4f9;
-      color: #333;
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      padding-top: 10px; /* Header ki height jitna space de dein */
-    }
+body {  
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  
+  background-color: #f4f4f9;  
+  color: #333;  
+  margin: 0;  
+  height: 100vh;  
+  display: flex;  
+  flex-direction: column;  
+  overflow: hidden;  
+}  
 
-    header {
+header {  
+  background: linear-gradient(45deg, #ff6f61, #ff9a8b);  
+  color: white;  
+  text-align: center;  
+  padding: 8px;  
+  font-size: 14px;  
+  font-weight: bold;  
+  position: fixed;  
+  top: 0;  
+  width: 100%;  
+  z-index: 10;  
+}  
+header1 {
   font-size: 16px;
   font-weight: bold;
   padding: 12px 0;
@@ -37,354 +48,354 @@
   top: 0;
   left: 0;
   width: 100%; /* Full width */
-  z-index: 1000;
+  z-index: 10;
 }
-    .navItem {
-      display: block;
-      width: 90%;
-      margin: 8px auto;
-      padding: 8px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background: linear-gradient(145deg, #fff, #e4e4e4);
-      transition: all 0.3s ease;
-    }
+.navItem {  
+  display: block;  
+  width: 90%;  
+  margin: 8px auto;  
+  padding: 8px;  
+  font-size: 14px;  
+  border-radius: 6px;  
+  border: 1px solid #ccc;  
+  background: linear-gradient(145deg, #fff, #e4e4e4);  
+  transition: all 0.3s ease;  
+}  
 
-    .navItem:focus {
-      border: 2px solid #007bff;
-    }
+.navItem:focus {  
+  border: 2px solid #007bff;  
+}  
 
-    button {
-      background: linear-gradient(45deg, #1e90ff, #00bfff);
-      color: black;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-      padding: 8px 16px;
-      width: 80%;
-      border-radius: 6px;
-      margin-top: 8px;
-      transition: background 0.3s ease;
-    }
+button {  
+  background: linear-gradient(45deg, #1e90ff, #00bfff);  
+  color: black;  
+  border: none;  
+  cursor: pointer;  
+  font-size: 14px;  
+  font-weight: bold;  
+  padding: 8px 16px;  
+  width: 80%;  
+  border-radius: 6px;  
+  margin-top: 8px;  
+  transition: background 0.3s ease;  
+}  
 
-    button:hover {
-      background: linear-gradient(45deg, #00bfff, #1e90ff);
-    }
+button:hover {  
+  background: linear-gradient(45deg, #00bfff, #1e90ff);  
+}  
 
-    #loginPage,
-    #mainPage,
-    #chatPage {
-      flex: 1;
-      overflow: auto;
-      display: none;
-    }
+#loginPage,  
+#mainPage,  
+#chatPage {  
+  flex: 1;  
+  overflow: auto;  
+  display: none;  
+}  
 
-    #loginPage.active,
-    #mainPage.active,
-    #chatPage.active {
-      display: flex;
-      flex-direction: column;
-    }
+#loginPage.active,  
+#mainPage.active,  
+#chatPage.active {  
+  display: flex;  
+  flex-direction: column;  
+}  
 
-    #loginPage {
-      justify-content: center;
-      align-items: center;
-      background-color: #f4f4f9;
-      color: #333;
-      height: 100vh;
-      padding-top: 40px; /* Space for fixed header */
-    }
+#loginPage {  
+  justify-content: center;  
+  align-items: center;  
+  background-color: #f4f4f9;  
+  color: #333;  
+  height: 100vh;  
+  padding-top: 40px; /* Space for fixed header */  
+}  
 
-    #loginContainer {
-      width: 90%;
-      text-align: center;
-    }
+#loginContainer {  
+  width: 90%;  
+  text-align: center;  
+}  
 
-    #mainPage {
-      padding-top: 50px; /* Increased padding to avoid overlap with header */
-    }
+#mainPage {  
+  padding-top: 50px; /* Increased padding to avoid overlap with header */  
+}  
 
-    #privateChatList {
-      padding: 8px;
-      color: black;
-      font-weight: bold;
-      text-align: center;
-    }
+#privateChatList {  
+  padding: 8px;  
+  color: black;  
+  font-weight: bold;  
+  text-align: center;  
+}  
 
-    .chat-item {
-      padding: 8px;
-      background: linear-gradient(145deg, #ffffff, #f7f7f7);
-      border-radius: 6px;
-      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    }
+.chat-item {  
+  padding: 8px;  
+  background: linear-gradient(145deg, #ffffff, #f7f7f7);  
+  border-radius: 6px;  
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);  
+  cursor: pointer;  
+  font-size: 14px;  
+  transition: all 0.3s ease;  
+}  
 
-    .chat-item:hover {
-      background: linear-gradient(145deg, #f0f0f0, #ffffff);
-    }
+.chat-item:hover {  
+  background: linear-gradient(145deg, #f0f0f0, #ffffff);  
+}  
 
-    #chatHeader {
-      font-size: 16px;
-      font-weight: bold;
-      padding: 8px;
-      background: linear-gradient(45deg, #ff6f61, #ff9a8b);
-      color: white;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
+#chatHeader {  
+  font-size: 16px;  
+  font-weight: bold;  
+  padding: 8px;  
+  background: linear-gradient(45deg, #ff6f61, #ff9a8b);  
+  color: white;  
+  text-align: center;  
+  position: sticky;  
+  top: 0;  
+  z-index: 10;  
+}  
 
-    #chatBox {
-      position: relative;
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px;
-      background-color: #e9ecef;
-      border-top: 1px solid #ccc;
-      background-size: cover;
-      background-position: center;
-    }
+#chatBox {  
+  position: relative;  
+  flex: 1;  
+  overflow-y: auto;  
+  padding: 8px;  
+  background-color: #e9ecef;  
+  border-top: 1px solid #ccc;  
+  background-size: cover;  
+  background-position: center;  
+}  
 
-    .message-container {
-      display: flex;
-      flex-direction: column;
-      margin: 6px 0;
-      max-width: 70%;
-      position: relative;
-    }
+.message-container {  
+  display: flex;  
+  flex-direction: column;  
+  margin: 6px 0;  
+  max-width: 70%;  
+  position: relative;  
+}  
 
-    .message {
-      padding: 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
+.message {  
+  padding: 8px;  
+  border-radius: 6px;  
+  font-size: 12px;  
+  position: relative;  
+  display: flex;  
+  flex-direction: column;  
+}  
 
-    .sent-container {
-      align-self: flex-end;
-    }
+.sent-container {  
+  align-self: flex-end;  
+}  
 
-    .received-container {
-      align-self: flex-start;
-    }
+.received-container {  
+  align-self: flex-start;  
+}  
 
-    .sent {
-      background: linear-gradient(45deg, #1e90ff, #00bfff);
-      color: white;
-    }
+.sent {  
+  background: linear-gradient(45deg, #1e90ff, #00bfff);  
+  color: white;  
+}  
 
-    .received {
-      background: linear-gradient(145deg, #f0f0f0, #ffffff);
-      color: #333;
-    }
+.received {  
+  background: linear-gradient(145deg, #f0f0f0, #ffffff);  
+  color: #333;  
+}  
 
-    .seen-by-both {
-      color: green !important;
-    }
+.seen-by-both {  
+  color: green !important;  
+}  
 
-    .seen-timestamp {
-      font-size: 10px;
-      color: white;
-      margin-top: 4px;
-      align-self: flex-end;
-    }
+.seen-timestamp {  
+  font-size: 10px;  
+  color: white;  
+  margin-top: 4px;  
+  align-self: flex-end;  
+}  
 
-    .reaction {
-      font-size: 14px;
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      color: #555;
-      padding: 2px;
-    }
+.reaction {  
+  font-size: 14px;  
+  position: absolute;  
+  bottom: 0;  
+  right: 0;  
+  color: #555;  
+  padding: 2px;  
+}  
 
-    #messageInputContainer {
-      display: flex;
-      align-items: center;
-      padding: 8px;
-      background-color: #f8f9fa;
-      border-top: 1px solid #ccc;
-      gap: 8px;
-    }
+#messageInputContainer {  
+  display: flex;  
+  align-items: center;  
+  padding: 8px;  
+  background-color: #f8f9fa;  
+  border-top: 1px solid #ccc;  
+  gap: 8px;  
+}  
 
-    #imageButton {
-      width: 32px;
-      height: 32px;
-      background-image: url('left-pic.png');
-      background-size: cover;
-      background-position: center;
-      border: none;
-      cursor: pointer;
-    }
+#imageButton {  
+  width: 32px;  
+  height: 32px;  
+  background-image: url('left-pic.png');  
+  background-size: cover;  
+  background-position: center;  
+  border: none;  
+  cursor: pointer;  
+}  
 
-    #imageButton:focus {
-      border: 2px solid #007bff;
-    }
+#imageButton:focus {  
+  border: 2px solid #007bff;  
+}  
 
-    #messageInput {
-      flex: 1;
-      padding: 8px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background-color: #fff;
-      color: #333;
-    }
+#messageInput {  
+  flex: 1;  
+  padding: 8px;  
+  font-size: 14px;  
+  border: 1px solid #ccc;  
+  border-radius: 4px;  
+  background-color: #fff;  
+  color: #333;  
+}  
 
-    #sendButton {
-      width: 32px;
-      height: 32px;
-      background-image: url('right-pic.png');
-      background-size: cover;
-      background-position: center;
-      border: none;
-      cursor: pointer;
-      margin: 0;
-      align-self: center;
-    }
+#sendButton {  
+  width: 32px;  
+  height: 32px;  
+  background-image: url('right-pic.png');  
+  background-size: cover;  
+  background-position: center;  
+  border: none;  
+  cursor: pointer;  
+  margin: 0;  
+  align-self: center;  
+}  
 
-    #sendButton:focus {
-      border: 2px solid #007bff;
-    }
+#sendButton:focus {  
+  border: 2px solid #007bff;  
+}  
 
-    #softKeysContainer {
-      height: 1.1rem;
-      line-height: 1.1rem;
-      width: 100%;
-      background: linear-gradient(45deg, #ff6f61, #ff9a8b);
-      position: fixed;
-      bottom: 0;
-      display: none;
-    }
+#softKeysContainer {  
+  height: 1.1rem;  
+  line-height: 1.1rem;  
+  width: 100%;  
+  background: linear-gradient(45deg, #ff6f61, #ff9a8b);  
+  position: fixed;  
+  bottom: 0;  
+  display: none;  
+}  
 
-    #softKeysContainer.active {
-      display: block;
-    }
+#softKeysContainer.active {  
+  display: block;  
+}  
 
-    #softkey-left,
-    #softkey-center,
-    #softkey-right {
-      text-align: right;
-      font-size: 15px;
-      color: #ffffff;
-    }
+#softkey-left,  
+#softkey-center,  
+#softkey-right {  
+  text-align: right;  
+  font-size: 15px;  
+  color: #ffffff;  
+}  
 
-    .message img {
-      max-width: 100%;
-      height: 120px;
-      border-radius: 6px;
-      margin-top: 4px;
-    }
+.message img {  
+  max-width: 100%;  
+  height: 120px;  
+  border-radius: 6px;  
+  margin-top: 4px;  
+}  
 
-    .message:focus {
-      outline: none;
-      box-shadow: 0 0 10px 2px rgba(0, 123, 255, 0.7);
-    }
+.message:focus {  
+  outline: none;  
+  box-shadow: 0 0 10px 2px rgba(0, 123, 255, 0.7);  
+}  
 
-    .fullscreen-image {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 240px;
-      height: 320px;
-      object-fit: fill;
-      background-color: black;
-      z-index: 9999;
-    }
+.fullscreen-image {  
+  position: fixed;  
+  top: 50%;  
+  left: 50%;  
+  transform: translate(-50%, -50%);  
+  width: 240px;  
+  height: 320px;  
+  object-fit: fill;  
+  background-color: black;  
+  z-index: 9999;  
+}  
 
-    .emoji-container {
-      display: none;
-      position: absolute;
-      top: -40px;
-      right: 0;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 4px;
-      z-index: 100;
-    }
+.emoji-container {  
+  display: none;  
+  position: absolute;  
+  top: -40px;  
+  right: 0;  
+  background: white;  
+  border: 1px solid #ccc;  
+  border-radius: 4px;  
+  padding: 4px;  
+  z-index: 100;  
+}  
 
-    .emoji {
-      display: inline-block;
-      padding: 4px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+.emoji {  
+  display: inline-block;  
+  padding: 4px;  
+  font-size: 16px;  
+  cursor: pointer;  
+}  
 
-    .emoji:focus {
-      outline: 2px solid #007bff;
-      background: #e0e0e0;
-    }
+.emoji:focus {  
+  outline: 2px solid #007bff;  
+  background: #e0e0e0;  
+}  
 
-    /* Themes */
-    .rainbow-theme { background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff); color: #333; }
-    .skyway-theme { background: linear-gradient(180deg, #87CEEB, #E0F7FA); color: #333; }
-    .night-theme { background: linear-gradient(180deg, #1a1a2e, #16213e); color: #e0e0e0; }
-    .forest-theme { background: linear-gradient(180deg, #2e4f2e, #4a704a); color: #e0e0e0; }
-    .sunset-theme { background: linear-gradient(180deg, #ff4500, #ff8c00); color: #333; }
-    .ocean-theme { background: linear-gradient(180deg, #1e90ff, #00b7eb); color: #333; }
-    .lavender-theme { background: linear-gradient(180deg, #e6e6fa, #d8bfd8); color: #333; }
-    .galaxy-theme { background: linear-gradient(180deg, #0d1b2a, #1b263b); color: #e0e0e0; }
-    .neon-theme { background: linear-gradient(180deg, #ff00ff, #00ffcc); color: #333; }
-    .desert-theme { background: linear-gradient(180deg, #f4a261, #e76f51); color: #333; }
-    .aurora-theme { background: linear-gradient(180deg, #2a9d8f, #264653); color: #e0e0e0; }
-    .candy-theme { background: linear-gradient(180deg, #ff70a6, #ff9770); color: #333; }
-    .neon-glowing-theme { background: linear-gradient(45deg, #00ffcc, #ff00ff, #00ccff, #ffcc00); color: #fff; text-shadow: 0 0 5px #00ffcc, 0 0 10px #ff00ff; }
-    .cosmic-dust-theme { background: linear-gradient(135deg, #1e1e3f, #3f2a5d, #6b4984, #9d75a8); color: #e0e0e0; }
-    .tropical-vibe-theme { background: linear-gradient(45deg, #ff6b6b, #ffa07a, #98ff98, #20b2aa); color: #333; }
-    .electric-pulse-theme { background: linear-gradient(90deg, #ff007a, #00d4ff, #ff00cc, #00ff7f); color: #fff; }
-    .mystic-dawn-theme { background: linear-gradient(180deg, #4b0082, #9400d3, #ff1493, #ff69b4); color: #e0e0e0; }
-    .firestorm-theme { background: linear-gradient(45deg, #ff4500, #ff8c00, #ff0000, #dc143c); color: #fff; }
-    .glacial-glow-theme { background: linear-gradient(135deg, #00ced1, #4682b4, #00b7eb, #87cefa); color: #333; }
-    .retro-wave-theme { background: linear-gradient(90deg, #ff77ff, #00ffff, #ff00ff, #00ffcc); color: #fff; }
-    .golden-horizon-theme { background: linear-gradient(180deg, #ffd700, #ff8c00, #ffa500, #ff4500); color: #333; }
+/* Themes */  
+.rainbow-theme { background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff); color: #333; }  
+.skyway-theme { background: linear-gradient(180deg, #87CEEB, #E0F7FA); color: #333; }  
+.night-theme { background: linear-gradient(180deg, #1a1a2e, #16213e); color: #e0e0e0; }  
+.forest-theme { background: linear-gradient(180deg, #2e4f2e, #4a704a); color: #e0e0e0; }  
+.sunset-theme { background: linear-gradient(180deg, #ff4500, #ff8c00); color: #333; }  
+.ocean-theme { background: linear-gradient(180deg, #1e90ff, #00b7eb); color: #333; }  
+.lavender-theme { background: linear-gradient(180deg, #e6e6fa, #d8bfd8); color: #333; }  
+.galaxy-theme { background: linear-gradient(180deg, #0d1b2a, #1b263b); color: #e0e0e0; }  
+.neon-theme { background: linear-gradient(180deg, #ff00ff, #00ffcc); color: #333; }  
+.desert-theme { background: linear-gradient(180deg, #f4a261, #e76f51); color: #333; }  
+.aurora-theme { background: linear-gradient(180deg, #2a9d8f, #264653); color: #e0e0e0; }  
+.candy-theme { background: linear-gradient(180deg, #ff70a6, #ff9770); color: #333; }  
+.neon-glowing-theme { background: linear-gradient(45deg, #00ffcc, #ff00ff, #00ccff, #ffcc00); color: #fff; text-shadow: 0 0 5px #00ffcc, 0 0 10px #ff00ff; }  
+.cosmic-dust-theme { background: linear-gradient(135deg, #1e1e3f, #3f2a5d, #6b4984, #9d75a8); color: #e0e0e0; }  
+.tropical-vibe-theme { background: linear-gradient(45deg, #ff6b6b, #ffa07a, #98ff98, #20b2aa); color: #333; }  
+.electric-pulse-theme { background: linear-gradient(90deg, #ff007a, #00d4ff, #ff00cc, #00ff7f); color: #fff; }  
+.mystic-dawn-theme { background: linear-gradient(180deg, #4b0082, #9400d3, #ff1493, #ff69b4); color: #e0e0e0; }  
+.firestorm-theme { background: linear-gradient(45deg, #ff4500, #ff8c00, #ff0000, #dc143c); color: #fff; }  
+.glacial-glow-theme { background: linear-gradient(135deg, #00ced1, #4682b4, #00b7eb, #87cefa); color: #333; }  
+.retro-wave-theme { background: linear-gradient(90deg, #ff77ff, #00ffff, #ff00ff, #00ffcc); color: #fff; }  
+.golden-horizon-theme { background: linear-gradient(180deg, #ffd700, #ff8c00, #ffa500, #ff4500); color: #333; }  
 
-    /* Custom Alert Styles */
-    .custom-alert {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border: 2px solid #ff6f61;
-      border-radius: 6px;
-      padding: 20px;
-      z-index: 10000;
-      text-align: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
+/* Custom Alert Styles */  
+.custom-alert {  
+  position: fixed;  
+  top: 50%;  
+  left: 50%;  
+  transform: translate(-50%, -50%);  
+  background: white;  
+  border: 2px solid #ff6f61;  
+  border-radius: 6px;  
+  padding: 20px;  
+  z-index: 10000;  
+  text-align: center;  
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);  
+}  
 
-    .custom-alert-header {
-      background: linear-gradient(45deg, #ff6f61, #ff9a8b);
-      color: white;
-      padding: 8px;
-      font-weight: bold;
-      border-radius: 4px 4px 0 0;
-      margin: -20px -20px 10px -20px;
-    }
+.custom-alert-header {  
+  background: linear-gradient(45deg, #ff6f61, #ff9a8b);  
+  color: white;  
+  padding: 8px;  
+  font-weight: bold;  
+  border-radius: 4px 4px 0 0;  
+  margin: -20px -20px 10px -20px;  
+}  
 
-    .custom-alert .navItem {
-      width: 100%;
-    }
+.custom-alert .navItem {  
+  width: 100%;  
+}  
 
-    .button-container {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 10px;
-    }
+.button-container {  
+  display: flex;  
+  justify-content: space-around;  
+  margin-top: 10px;  
+}
   </style>
 </head>
 <body>
   <div id="loginPage" class="active">
-    <header>Chit Chat - Login</header>
+    <header1>Chit Chat - Login</header1>
     <div id="loginContainer">
       <input type="text" id="usernameInput" class="navItem" placeholder="Enter your name" tabindex="1" />
       <input type="password" id="passwordInput" class="navItem" placeholder="Enter your password" tabindex="2" />
