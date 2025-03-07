@@ -422,7 +422,7 @@ const firebaseConfig = {
     window.onload = function () {
       if (!username) {
         alert("Please log in first.");
-        window.location.href = "index.html";
+        window.location.href = "main.html";
       } else {
         loadWorldChat();
       }
@@ -549,7 +549,7 @@ const firebaseConfig = {
     // SoftRight key to go back to index.html
     document.addEventListener("keydown", function (e) {
       if (e.key === "SoftRight") {
-        window.location.href = "index.html";
+        window.location.href = "main.html";
       }
     });
 

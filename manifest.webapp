@@ -1,45 +1,58 @@
 {
   "name": "Chit Chat",
-  "display": "Chit Chat",
-  "version": "1.0.42",
+  "short_name": "ChitChat",
+  "version": "1.0.50",
   "type": "web",
-  "description": "Chit Chat lets you connect with friends through private chats, create group chats, and join global chats. Chat with anyone, make new friends, start a romantic relationship, or simply have fun. Find your GF, BF, or just enjoy some masti with your friends! Now you can also send images in chats for a more engaging experience. New features in this update include a typing indicator to show when friends are typing, and a 'left the chat' message for better chat flow. Stay connected for more exciting updates!",
-  "subtitle": "Private,Group Chats,Make Friends & Enjoy",
-  "launch_path": "/first.html",
-  "default_locale": "en-US",
-  "locales": {
-    "en-US": {
-      "name": "Chit Chat",
-      "description": "Chit Chat lets you connect with friends through private chats, create group chats, and join global chats. Chat with anyone, make new friends, start a romantic relationship, or simply have fun. Find your GF, BF, or just enjoy some masti with your friends! Now you can also send images in chats for a more engaging experience. New features in this update include a typing indicator to show when friends are typing, and a 'left the chat' message for better chat flow. Stay connected for more exciting updates!",
-      "subtitle": "Private,Group Chats,Make Friends & Enjoy"
+  "description": "Chit Chat lets you connect with friends through private chats, create group chats, and join global chats. Chat with anyone, make new friends, start a romantic relationship, or simply have fun. Find your GF, BF, or just enjoy some masti with your friends! Now you can also send images and voice messages in chats for a more engaging experience.",
+  "start_url": "https://mzubairtalha.github.io/Chit-chat/",
+  "display": "standalone",
+  "background_color": "#F7FCFE",
+  "theme_color": "#F7FCFE",
+  "orientation": "portrait",
+  "scope": "https://mzubairtalha.github.io/Chit-chat/",
+  "icons": [
+    {
+      "src": "/icons/icon56x56.png",
+      "sizes": "56x56",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon112x112.png",
+      "sizes": "112x112",
+      "type": "image/png"
     }
-  },
-  "icons": {
-    "56": "/icons/icon56x56.png",
-    "112": "/icons/icon112x112.png"
-  },
-  "origin": "app://chitchat.app.com",
-  "permissions": {  
-    "mobiledata": {},  
-    "wifidata": {},  
-    "systemXHR": {},  
-    "desktop-notification": {},  
-    "push": {},  
-    "serviceWorker": {},  
-    "audio-capture": {},  
-    "microphone": {},  
-    "audio-playback": {},  
-    "media": {}  
+  ],
+  "permissions": {
+    "mobiledata": {},
+    "wifidata": {},
+    "systemXHR": {},
+    "desktop-notification": {},
+    "push": {},
+    "serviceWorker": {},
+    "audio-capture": {
+      "description": "Required to record audio messages"
+    },
+    "microphone": {
+      "description": "Required to access the microphone for voice recording"
+    },
+    "audio": {
+      "description": "Required to play audio messages"
+    },
+    "media": {
+      "description": "Required to handle media playback and recording"
+    },
+    "audio-channel-content": {
+      "description": "Required to play audio messages in the content channel"
+    }
   },
   "developer": {
     "name": "M Zubair Talha",
     "url": "http://zubitechofficial.blogspot.com"
   },
   "priority": "high",
+  "fullscreen": true,
   "cursor": false,
   "dependencies": {
     "ads-sdk": "1.5.8"
-  },
-  "theme_color": "#F7FCFE",
-  "fullscreen": "true"
+  }
 }
