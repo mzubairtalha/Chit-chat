@@ -44,10 +44,10 @@ header1 {
   background: linear-gradient(45deg, #ff6f61, #ff9a8b);
   color: white;
   text-align: center;
-  position: fixed; /* Sticky se better yeh use karein */
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100%; /* Full width */
+  width: 100%;
   z-index: 10;
 }
 .navItem {  
@@ -105,7 +105,7 @@ button:hover {
   background-color: #f4f4f9;  
   color: #333;  
   height: 100vh;  
-  padding-top: 40px; /* Space for fixed header */  
+  padding-top: 40px; 
 }  
 
 #loginContainer {  
@@ -114,7 +114,7 @@ button:hover {
 }  
 
 #mainPage {  
-  padding-top: 50px; /* Increased padding to avoid overlap with header */  
+  padding-top: 50px; 
 }  
 
 #privateChatList {  
@@ -687,6 +687,7 @@ button:hover {
             localStorage.setItem("password", password);
             loginPage.classList.remove("active");
             mainPage.classList.add("active");
+            softKeysContainer.style.display = "none"; // Hide footer on main page
             loadPrivateChats();
             setupPresence();
             registerPushNotifications();
@@ -711,6 +712,7 @@ button:hover {
           localStorage.setItem("password", password);
           loginPage.classList.remove("active");
           mainPage.classList.add("active");
+          softKeysContainer.style.display = "none"; // Hide footer on main page
           loadPrivateChats();
           setupPresence();
           registerPushNotifications();
@@ -925,7 +927,7 @@ button:hover {
       chatBox.innerHTML = "";
       mainPage.classList.remove("active");
       chatPage.classList.add("active");
-      softKeysContainer.classList.add("active"); // Show footer on chat page
+      softKeysContainer.style.display = "block"; // Show footer only on chat page
       chatHeader.textContent = `Chat with ${chatType}`;
       processedMessages.clear();
 
@@ -1321,7 +1323,7 @@ button:hover {
         if (chatPage.classList.contains("active")) {
           chatPage.classList.remove("active");
           mainPage.classList.add("active");
-          softKeysContainer.classList.remove("active"); // Hide footer on main page
+          softKeysContainer.style.display = "none"; // Hide footer when returning to main page
           document.getElementById("searchInput").focus();
           if (chatRef) chatRef.off();
           if (otherChatRef) otherChatRef.off();
