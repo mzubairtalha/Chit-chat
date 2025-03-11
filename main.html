@@ -207,6 +207,13 @@ button:hover {
   align-self: flex-end;  
 }  
 
+.received-timestamp {  
+  font-size: 10px;  
+  color: #666;  
+  margin-top: 4px;  
+  align-self: flex-start;  
+}  
+
 .reaction {  
   font-size: 14px;  
   position: absolute;  
@@ -314,12 +321,13 @@ button:hover {
 .emoji-container {  
   display: none;  
   position: absolute;  
-  top: -40px;  
+  bottom: -40px;  
   right: 0;  
-  background: white;  
+  background: linear-gradient(45deg, #ffcc00, #ff66cc, #66ffcc);  
   border: 1px solid #ccc;  
-  border-radius: 4px;  
+  border-radius: 6px;  
   padding: 4px;  
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  
   z-index: 100;  
 }  
 
@@ -328,11 +336,63 @@ button:hover {
   padding: 4px;  
   font-size: 16px;  
   cursor: pointer;  
+  border-radius: 4px;  
+  transition: background 0.2s ease;  
 }  
 
 .emoji:focus {  
   outline: 2px solid #007bff;  
-  background: #e0e0e0;  
+  background: rgba(255, 255, 255, 0.3);  
+}  
+
+.action-container {  
+  display: none;  
+  position: absolute;  
+  bottom: -80px;  
+  right: 0;  
+  background: linear-gradient(45deg, #ff9966, #ff5e62, #ffcc99);  
+  border: 1px solid #ccc;  
+  border-radius: 6px;  
+  padding: 4px;  
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  
+  z-index: 100;  
+}  
+
+.action-button {  
+  display: inline-block;  
+  padding: 4px 8px;  
+  font-size: 12px;  
+  color: #fff;  
+  border: 1px solid #ccc;  
+  border-radius: 4px;  
+  cursor: pointer;  
+  margin: 2px;  
+  transition: background 0.2s ease;  
+}  
+
+.delete-for-me {  
+  background: linear-gradient(45deg, #ff4500, #ff8c00);  
+}  
+
+.delete-for-everyone {  
+  background: linear-gradient(45deg, #ff1493, #ff69b4);  
+}  
+
+.action-button:focus {  
+  outline: 2px solid #007bff;  
+  background: rgba(255, 255, 255, 0.3);  
+}  
+
+.last-seen {  
+  font-size: 10px;  
+  color: #fff;  
+  margin-left: 8px;  
+}  
+
+.deleted-message {  
+  background: linear-gradient(145deg, #d3d3d3, #a9a9a9);  
+  color: #666;  
+  font-style: italic;  
 }  
 
 /* Themes */  
@@ -434,7 +494,7 @@ button:hover {
   </div>
 
   <script>
-    const firebaseConfig = {
+    var firebaseConfig = {
       apiKey: "AIzaSyCcPZRtjWHfW-5fTNsXeEfT7IrAx7O2vRM",
       authDomain: "chit-chat-359a4.firebaseapp.com",
       projectId: "chit-chat-359a4",
@@ -446,38 +506,39 @@ button:hover {
 
     firebase.initializeApp(firebaseConfig);
 
-    let username = localStorage.getItem("username");
-    let password = localStorage.getItem("password");
-    const loginPage = document.getElementById("loginPage");
-    const mainPage = document.getElementById("mainPage");
-    const chatPage = document.getElementById("chatPage");
-    const chatHeader = document.getElementById("chatHeader");
-    const chatBox = document.getElementById("chatBox");
-    const privateChatList = document.getElementById("privateChatList");
-    const messageInput = document.getElementById("messageInput");
-    const imageButton = document.getElementById("imageButton");
-    const sendButton = document.getElementById("sendButton");
-    const changeBackgroundButton = document.getElementById("changeBackgroundButton");
-    const changeThemeButton = document.getElementById("changeThemeButton");
-    const softKeysContainer = document.getElementById("softKeysContainer");
-    const signInButton = document.getElementById("signInButton");
-    const usernameInput = document.getElementById("usernameInput");
-    const passwordInput = document.getElementById("passwordInput");
-    let currentChatType = null;
-    let messages = [];
-    let chatRef = null;
-    let otherChatRef = null;
-    let processedMessages = new Set();
-    let pressCount = 0;
-    let currentEmojiContainer = null;
-    let shownAlerts = new Set();
-    let isAlertActive = false;
+    var username = localStorage.getItem("username");
+    var password = localStorage.getItem("password");
+    var loginPage = document.getElementById("loginPage");
+    var mainPage = document.getElementById("mainPage");
+    var chatPage = document.getElementById("chatPage");
+    var chatHeader = document.getElementById("chatHeader");
+    var chatBox = document.getElementById("chatBox");
+    var privateChatList = document.getElementById("privateChatList");
+    var messageInput = document.getElementById("messageInput");
+    var imageButton = document.getElementById("imageButton");
+    var sendButton = document.getElementById("sendButton");
+    var changeBackgroundButton = document.getElementById("changeBackgroundButton");
+    var changeThemeButton = document.getElementById("changeThemeButton");
+    var softKeysContainer = document.getElementById("softKeysContainer");
+    var signInButton = document.getElementById("signInButton");
+    var usernameInput = document.getElementById("usernameInput");
+    var passwordInput = document.getElementById("passwordInput");
+    var currentChatType = null;
+    var messages = [];
+    var chatRef = null;
+    var otherChatRef = null;
+    var processedMessages = new Set();
+    var pressCount = 0;
+    var currentEmojiContainer = null;
+    var currentActionContainer = null;
+    var shownAlerts = new Set();
+    var isAlertActive = false;
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedBackground = localStorage.getItem("chatBackground");
-      const savedTheme = localStorage.getItem("chatTheme");
+    document.addEventListener("DOMContentLoaded", function () {
+      var savedBackground = localStorage.getItem("chatBackground");
+      var savedTheme = localStorage.getItem("chatTheme");
       if (savedBackground) {
-        chatBox.style.backgroundImage = `url(${savedBackground})`;
+        chatBox.style.backgroundImage = "url(" + savedBackground + ")";
       }
       if (savedTheme) {
         document.body.className = savedTheme;
@@ -495,48 +556,39 @@ button:hover {
 
     function showCustomAlert(message, callback) {
       isAlertActive = true;
-      const alertBox = document.createElement("div");
+      var alertBox = document.createElement("div");
       alertBox.className = "custom-alert";
-      alertBox.innerHTML = `
-        <div class="custom-alert-header">Chit Chat</div>
-        <p>${message}</p>
-        <button id="alertOkButton" class="navItem">OK</button>
-      `;
+      alertBox.innerHTML = '<div class="custom-alert-header">Chit Chat</div><p>' + message + '</p><button id="alertOkButton" class="navItem">OK</button>';
       document.body.appendChild(alertBox);
 
-      const okButton = document.getElementById("alertOkButton");
+      var okButton = document.getElementById("alertOkButton");
       okButton.focus();
-      okButton.onclick = () => {
+      okButton.onclick = function () {
         document.body.removeChild(alertBox);
         isAlertActive = false;
         if (callback) callback(true);
       };
 
-      okButton.onkeydown = (e) => {
+      okButton.onkeydown = function (e) {
         if (e.key === "Enter") okButton.click();
       };
     }
 
-    function showCustomPrompt(message, callback, validOptions = null) {
+    function showCustomPrompt(message, callback, validOptions) {
       isAlertActive = true;
-      const alertBox = document.createElement("div");
+      var alertBox = document.createElement("div");
       alertBox.className = "custom-alert";
-      alertBox.innerHTML = `
-        <div class="custom-alert-header">Chit Chat</div>
-        <p>${message}</p>
-        <input type="text" id="promptInput" class="navItem" />
-        <button id="promptOkButton" class="navItem">OK</button>
-      `;
+      alertBox.innerHTML = '<div class="custom-alert-header">Chit Chat</div><p>' + message + '</p><input type="text" id="promptInput" class="navItem" /><button id="promptOkButton" class="navItem">OK</button>';
       document.body.appendChild(alertBox);
 
-      const input = document.getElementById("promptInput");
-      const okButton = document.getElementById("promptOkButton");
+      var input = document.getElementById("promptInput");
+      var okButton = document.getElementById("promptOkButton");
       input.focus();
 
-      okButton.onclick = () => {
-        const value = input.value.trim();
-        if (validOptions && (!value || !validOptions.includes(value))) {
-          showCustomAlert("Please select one option.", () => {
+      okButton.onclick = function () {
+        var value = input.value.trim();
+        if (validOptions && (!value || validOptions.indexOf(value) === -1)) {
+          showCustomAlert("Please select one option.", function () {
             input.focus();
           });
           return;
@@ -546,17 +598,17 @@ button:hover {
         callback(value);
       };
 
-      input.onkeydown = (e) => {
+      input.onkeydown = function (e) {
         if (e.key === "Enter") okButton.click();
       };
 
-      input.onkeydown = (e) => {
+      input.onkeydown = function (e) {
         if (e.key === "ArrowDown") {
           okButton.focus();
         }
       };
 
-      okButton.onkeydown = (e) => {
+      okButton.onkeydown = function (e) {
         if (e.key === "ArrowUp") {
           input.focus();
         }
@@ -565,48 +617,41 @@ button:hover {
 
     function showConfirmPrompt(message, callback) {
       isAlertActive = true;
-      const alertBox = document.createElement("div");
+      var alertBox = document.createElement("div");
       alertBox.className = "custom-alert";
-      alertBox.innerHTML = `
-        <div class="custom-alert-header">Chit Chat</div>
-        <p>${message}</p>
-        <div class="button-container">
-          <button id="confirmOkButton" class="navItem">OK</button>
-          <button id="confirmCancelButton" class="navItem">Cancel</button>
-        </div>
-      `;
+      alertBox.innerHTML = '<div class="custom-alert-header">Chit Chat</div><p>' + message + '</p><div class="button-container"><button id="confirmOkButton" class="navItem">OK</button><button id="confirmCancelButton" class="navItem">Cancel</button></div>';
       document.body.appendChild(alertBox);
 
-      const okButton = document.getElementById("confirmOkButton");
-      const cancelButton = document.getElementById("confirmCancelButton");
+      var okButton = document.getElementById("confirmOkButton");
+      var cancelButton = document.getElementById("confirmCancelButton");
       okButton.focus();
 
-      okButton.onclick = () => {
+      okButton.onclick = function () {
         document.body.removeChild(alertBox);
         isAlertActive = false;
         callback(true);
       };
 
-      cancelButton.onclick = () => {
+      cancelButton.onclick = function () {
         document.body.removeChild(alertBox);
         isAlertActive = false;
         callback(false);
       };
 
-      okButton.onkeydown = (e) => {
+      okButton.onkeydown = function (e) {
         if (e.key === "Enter") okButton.click();
         if (e.key === "ArrowRight") cancelButton.focus();
       };
 
-      cancelButton.onkeydown = (e) => {
+      cancelButton.onkeydown = function (e) {
         if (e.key === "Enter") cancelButton.click();
         if (e.key === "ArrowLeft") okButton.focus();
       };
     }
 
     signInButton.onclick = function () {
-      const enteredUsername = usernameInput.value.trim();
-      const enteredPassword = passwordInput.value.trim();
+      var enteredUsername = usernameInput.value.trim();
+      var enteredPassword = passwordInput.value.trim();
       if (!enteredUsername || !enteredPassword) {
         showCustomAlert("Please enter both username and password.");
         return;
@@ -633,14 +678,14 @@ button:hover {
 
     function registerPushNotifications() {
       if ('navigator.mozApps' in window) {
-        const request = navigator.mozApps.getSelf();
+        var request = navigator.mozApps.getSelf();
         request.onsuccess = function() {
-          const app = this.result;
+          var app = this.result;
           if (app) {
             navigator.push = navigator.push || {};
-            const reg = navigator.push.register();
+            var reg = navigator.push.register();
             reg.onsuccess = function(e) {
-              const endpoint = e.result;
+              var endpoint = e.result;
               localStorage.setItem("pushEndpoint", endpoint);
               console.log("Push endpoint registered:", endpoint);
             };
@@ -651,7 +696,7 @@ button:hover {
 
     function sendPushNotification(message, from) {
       if (Notification.permission === "granted") {
-        new Notification(`New message from ${from}`, {
+        new Notification("New message from " + from, {
           body: message,
           icon: 'icons/icon56x56.png'
         });
@@ -663,12 +708,12 @@ button:hover {
         publisher: 'da08737d-861e-4ebe-bbbb-8fb90d004d39',
         app: 'Chit_Chat',
         slot: 'Chit_Chat__slot',
-        onerror: err => console.error('Custom catch:', err),
-        onready: ad => {
-          const previouslyFocusedElement = document.activeElement;
+        onerror: function(err) { console.error('Custom catch:', err); },
+        onready: function(ad) {
+          var previouslyFocusedElement = document.activeElement;
           ad.call('display');
-          ad.on('display', () => softKeysContainer.style.display = chatPage.classList.contains("active") ? "block" : "none");
-          ad.on('close', () => {
+          ad.on('display', function() { softKeysContainer.style.display = chatPage.classList.contains("active") ? "block" : "none"; });
+          ad.on('close', function() {
             if (previouslyFocusedElement) previouslyFocusedElement.focus();
             softKeysContainer.style.display = chatPage.classList.contains("active") ? "block" : "none";
           });
@@ -679,7 +724,7 @@ button:hover {
     function authenticateUser(enteredUsername, enteredPassword) {
       firebase.database().ref("users/" + enteredUsername).once("value", function (snapshot) {
         if (snapshot.exists()) {
-          const userData = snapshot.val();
+          var userData = snapshot.val();
           if (userData.password === enteredPassword) {
             username = enteredUsername;
             password = enteredPassword;
@@ -687,7 +732,7 @@ button:hover {
             localStorage.setItem("password", password);
             loginPage.classList.remove("active");
             mainPage.classList.add("active");
-            softKeysContainer.style.display = "none"; // Hide footer on main page
+            softKeysContainer.style.display = "none";
             loadPrivateChats();
             setupPresence();
             registerPushNotifications();
@@ -695,7 +740,7 @@ button:hover {
             setInterval(showKaiAd, 2 * 60 * 1000);
             document.getElementById("searchInput").focus();
           } else {
-            showCustomAlert("Incorrect password. Please try again.", () => {
+            showCustomAlert("Incorrect password. Please try again.", function () {
               passwordInput.value = "";
               passwordInput.focus();
             });
@@ -704,7 +749,7 @@ button:hover {
           firebase.database().ref("users/" + enteredUsername).set({
             name: enteredUsername,
             password: enteredPassword,
-            timestamp: Date.now(),
+            timestamp: Date.now()
           });
           username = enteredUsername;
           password = enteredPassword;
@@ -712,7 +757,7 @@ button:hover {
           localStorage.setItem("password", password);
           loginPage.classList.remove("active");
           mainPage.classList.add("active");
-          softKeysContainer.style.display = "none"; // Hide footer on main page
+          softKeysContainer.style.display = "none";
           loadPrivateChats();
           setupPresence();
           registerPushNotifications();
@@ -724,38 +769,60 @@ button:hover {
     }
 
     function setupPresence() {
-      const presenceRef = firebase.database().ref(`presence/${username}`);
-      const connectedRef = firebase.database().ref(".info/connected");
+      var presenceRef = firebase.database().ref("presence/" + username);
+      var connectedRef = firebase.database().ref(".info/connected");
 
-      connectedRef.on("value", (snap) => {
+      connectedRef.on("value", function (snap) {
         if (snap.val() === true) {
-          presenceRef.set(true);
-          presenceRef.onDisconnect().set(false);
+          presenceRef.set({ online: true, lastSeen: Date.now() });
+          presenceRef.onDisconnect().set({ online: false, lastSeen: Date.now() });
         }
       });
     }
 
     function isUserBlocked(blocker, blocked) {
-      return firebase.database().ref(`blocked/${blocker}/${blocked}`).once("value").then(snapshot => snapshot.exists());
+      return firebase.database().ref("blocked/" + blocker + "/" + blocked).once("value").then(function (snapshot) {
+        return snapshot.exists();
+      });
     }
 
     function blockUser(blocker, blocked) {
-      firebase.database().ref(`blocked/${blocker}/${blocked}`).set(true);
-      firebase.database().ref(`privateChats/${blocker}/${blocked}`).remove();
-      firebase.database().ref(`privateChats/${blocked}/${blocker}`).remove();
+      firebase.database().ref("blocked/" + blocker + "/" + blocked).set(true);
+      firebase.database().ref("privateChats/" + blocker + "/" + blocked).remove();
+      firebase.database().ref("privateChats/" + blocked + "/" + blocker).remove();
     }
 
     function unblockUser(blocker, blocked) {
-      firebase.database().ref(`blocked/${blocker}/${blocked}`).remove();
+      firebase.database().ref("blocked/" + blocker + "/" + blocked).remove();
+    }
+
+    function formatLastSeen(timestamp) {
+      var now = Date.now();
+      var diff = now - timestamp;
+      var date = new Date(timestamp);
+      var timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (diff < 24 * 60 * 60 * 1000) {
+        return timeStr;
+      } else if (diff < 48 * 60 * 60 * 1000) {
+        return "1 day";
+      } else {
+        return Math.floor(diff / (24 * 60 * 60 * 1000)) + " days";
+      }
+    }
+
+    function formatSendTime(timestamp) {
+      var date = new Date(timestamp);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
     function loadPrivateChats() {
       privateChatList.innerHTML = "<h4>Your Private Chats:</h4>";
       firebase.database().ref("privateChats/" + username).on("child_added", function (snapshot) {
-        const partnerName = snapshot.key;
-        isUserBlocked(username, partnerName).then(blocked => {
+        var partnerName = snapshot.key;
+        isUserBlocked(username, partnerName).then(function (blocked) {
           if (!blocked) {
-            const userElement = document.createElement("div");
+            var userElement = document.createElement("div");
             userElement.className = "user navItem";
             userElement.textContent = partnerName;
             userElement.tabIndex = 7;
@@ -768,18 +835,18 @@ button:hover {
             userElement.onkeydown = function (e) {
               if (e.key === "Enter") {
                 if (!shownAlerts.has(partnerName)) {
-                  showCustomPrompt(`Select an option for ${partnerName}:\nOptions:\n1. Chat\n2. Delete\n3. Block`, (choice) => {
+                  showCustomPrompt("Select an option for " + partnerName + ":\nOptions:\n1. Chat\n2. Delete\n3. Block", function (choice) {
                     shownAlerts.add(partnerName);
                     if (choice === "1") {
                       openChat(partnerName);
                       markMessagesAsSeen(partnerName, userElement);
                     } else if (choice === "2") {
-                      firebase.database().ref(`privateChats/${username}/${partnerName}`).remove();
+                      firebase.database().ref("privateChats/" + username + "/" + partnerName).remove();
                       userElement.remove();
                     } else if (choice === "3") {
                       blockUser(username, partnerName);
                       userElement.remove();
-                      showCustomAlert(`${partnerName} has been blocked and chat history deleted.`, () => {
+                      showCustomAlert(partnerName + " has been blocked and chat history deleted.", function () {
                         document.getElementById("searchInput").focus();
                       });
                     }
@@ -792,9 +859,9 @@ button:hover {
             };
             privateChatList.appendChild(userElement);
 
-            const chatRef = firebase.database().ref(`privateChats/${username}/${partnerName}`);
+            var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
             chatRef.on("child_added", function (msgSnapshot) {
-              const data = msgSnapshot.val();
+              var data = msgSnapshot.val();
               if (!data.seen && data.from === partnerName) {
                 userElement.style.color = "red";
                 sendPushNotification(data.message || "Image received", partnerName);
@@ -802,16 +869,16 @@ button:hover {
             });
 
             chatRef.on("child_changed", function (msgSnapshot) {
-              const data = msgSnapshot.val();
+              var data = msgSnapshot.val();
               if (data.seen && data.from === partnerName) {
-                const hasUnseenMessages = checkForUnseenMessages(partnerName);
+                var hasUnseenMessages = checkForUnseenMessages(partnerName);
                 if (!hasUnseenMessages) {
                   updateUserColor(partnerName, userElement);
                 }
               }
             });
 
-            firebase.database().ref(`presence/${partnerName}`).on("value", (snap) => {
+            firebase.database().ref("presence/" + partnerName).on("value", function (snap) {
               updateUserColor(partnerName, userElement);
             });
           }
@@ -820,10 +887,10 @@ button:hover {
     }
 
     function updateUserColor(partnerName, userElement) {
-      const presenceRef = firebase.database().ref(`presence/${partnerName}`);
-      presenceRef.once("value", (snap) => {
-        const isOnline = snap.val();
-        const hasUnseen = checkForUnseenMessages(partnerName);
+      var presenceRef = firebase.database().ref("presence/" + partnerName);
+      presenceRef.once("value", function (snap) {
+        var isOnline = snap.val() && snap.val().online;
+        var hasUnseen = checkForUnseenMessages(partnerName);
         if (hasUnseen) {
           userElement.style.color = "red";
         } else if (isOnline) {
@@ -835,14 +902,14 @@ button:hover {
     }
 
     function markMessagesAsSeen(partnerName, userElement) {
-      const chatRef = firebase.database().ref(`privateChats/${username}/${partnerName}`);
+      var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
       chatRef.once("value", function (snapshot) {
         snapshot.forEach(function (msgSnapshot) {
-          const message = msgSnapshot.val();
+          var message = msgSnapshot.val();
           if (message && message.from === partnerName && !message.seen) {
-            const seenTimestamp = Date.now();
-            chatRef.child(msgSnapshot.key).update({ seen: true, seenTimestamp });
-            firebase.database().ref(`privateChats/${partnerName}/${username}/${msgSnapshot.key}`).update({ seen: true, seenTimestamp });
+            var seenTimestamp = Date.now();
+            chatRef.child(msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
+            firebase.database().ref("privateChats/" + partnerName + "/" + username + "/" + msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
           }
         });
         updateUserColor(partnerName, userElement);
@@ -850,11 +917,11 @@ button:hover {
     }
 
     function checkForUnseenMessages(partnerName) {
-      let hasUnseen = false;
-      const chatRef = firebase.database().ref(`privateChats/${username}/${partnerName}`);
+      var hasUnseen = false;
+      var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
       chatRef.once("value", function (snapshot) {
         snapshot.forEach(function (msgSnapshot) {
-          const message = msgSnapshot.val();
+          var message = msgSnapshot.val();
           if (message && !message.seen && message.from === partnerName) {
             hasUnseen = true;
           }
@@ -864,22 +931,24 @@ button:hover {
     }
 
     function checkBothSeen(messageId) {
-      const senderRef = firebase.database().ref(`privateChats/${username}/${currentChatType}/${messageId}`);
-      const receiverRef = firebase.database().ref(`privateChats/${currentChatType}/${username}/${messageId}`);
+      var senderRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId);
+      var receiverRef = firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId);
       
       return Promise.all([
         senderRef.once('value'),
         receiverRef.once('value')
-      ]).then(([senderSnap, receiverSnap]) => {
-        const senderData = senderSnap.val();
-        const receiverData = receiverSnap.val();
+      ]).then(function (results) {
+        var senderSnap = results[0];
+        var receiverSnap = results[1];
+        var senderData = senderSnap.val();
+        var receiverData = receiverSnap.val();
         return senderData && receiverData && senderData.seen && receiverData.seen;
       });
     }
 
     function updateMessageColor(messageId) {
-      checkBothSeen(messageId).then(bothSeen => {
-        const messageElement = document.getElementById(`msg-${messageId}`);
+      checkBothSeen(messageId).then(function (bothSeen) {
+        var messageElement = document.getElementById("msg-" + messageId);
         if (messageElement) {
           if (bothSeen) {
             messageElement.classList.add('seen-by-both');
@@ -891,10 +960,10 @@ button:hover {
     }
 
     function sendMessage(content, type) {
-      const messageData = {
+      var messageData = {
         from: username,
         timestamp: Date.now(),
-        seen: false,
+        seen: false
       };
 
       if (type === "text") {
@@ -904,9 +973,9 @@ button:hover {
         messageData.mediaType = type;
       }
 
-      const senderChatRef = firebase.database().ref(`privateChats/${username}/${currentChatType}`).push();
-      const messageId = senderChatRef.key;
-      const receiverChatRef = firebase.database().ref(`privateChats/${currentChatType}/${username}/${messageId}`);
+      var senderChatRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType).push();
+      var messageId = senderChatRef.key;
+      var receiverChatRef = firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId);
 
       senderChatRef.set(messageData);
       receiverChatRef.set(messageData);
@@ -917,8 +986,8 @@ button:hover {
     }
 
     function formatTimestamp(timestamp) {
-      const date = new Date(timestamp);
-      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+      var date = new Date(timestamp);
+      return date.toLocaleDateString() + " " + date.toLocaleTimeString();
     }
 
     function openChat(chatType) {
@@ -927,74 +996,125 @@ button:hover {
       chatBox.innerHTML = "";
       mainPage.classList.remove("active");
       chatPage.classList.add("active");
-      softKeysContainer.style.display = "block"; // Show footer only on chat page
-      chatHeader.textContent = `Chat with ${chatType}`;
+      softKeysContainer.style.display = "block";
       processedMessages.clear();
 
       if (chatRef) chatRef.off();
       if (otherChatRef) otherChatRef.off();
 
-      chatRef = firebase.database().ref(`privateChats/${username}/${chatType}`);
-      otherChatRef = firebase.database().ref(`privateChats/${chatType}/${username}`);
+      chatRef = firebase.database().ref("privateChats/" + username + "/" + chatType);
+      otherChatRef = firebase.database().ref("privateChats/" + chatType + "/" + username);
+
+      var presenceRef = firebase.database().ref("presence/" + chatType);
+      presenceRef.on("value", function (snap) {
+        var presence = snap.val();
+        if (presence && presence.online) {
+          chatHeader.innerHTML = "Chat with " + chatType + ' <span class="last-seen">Online</span>';
+        } else if (presence) {
+          chatHeader.innerHTML = "Chat with " + chatType + ' <span class="last-seen">Last seen: ' + formatLastSeen(presence.lastSeen) + "</span>";
+        } else {
+          chatHeader.innerHTML = "Chat with " + chatType;
+        }
+      });
 
       chatRef.orderByChild("timestamp").limitToLast(20).on("child_added", function (snapshot) {
-        const messageId = snapshot.key;
+        var messageId = snapshot.key;
         if (processedMessages.has(messageId)) return;
 
-        const data = snapshot.val();
-        if (data && (data.message || data.mediaUrl)) {
+        var data = snapshot.val();
+        if (data) {
           processedMessages.add(messageId);
           
-          const messageContainer = document.createElement("div");
-          messageContainer.className = `message-container ${data.from === username ? "sent-container" : "received-container"}`;
+          var messageContainer = document.createElement("div");
+          messageContainer.className = "message-container " + (data.from === username ? "sent-container" : "received-container");
           
-          const messageElement = document.createElement("div");
-          messageElement.className = `message ${data.from === username ? "sent" : "received"}`;
-          messageElement.id = `msg-${messageId}`;
+          var messageElement = document.createElement("div");
+          messageElement.id = "msg-" + messageId;
           messageElement.tabIndex = 8;
 
-          if (data.mediaType === "image") {
-            const img = document.createElement("img");
-            img.src = data.mediaUrl;
-            img.loading = "lazy";
-            img.alt = "Loading...";
-            img.onload = () => img.alt = "";
-            img.onerror = () => img.alt = "Failed to load image";
-            img.tabIndex = 9;
-            messageElement.appendChild(img);
-          } else {
-            const textSpan = document.createElement("span");
-            textSpan.textContent = `${data.from}: ${data.message}`;
-            messageElement.appendChild(textSpan);
-          }
+          if (data.deleted) {
+            messageElement.className = "message deleted-message";
+            messageElement.innerHTML = "<span>Message deleted</span>";
+          } else if (data.message || data.mediaUrl) {
+            messageElement.className = "message " + (data.from === username ? "sent" : "received");
+            if (data.mediaType === "image") {
+              var img = document.createElement("img");
+              img.src = data.mediaUrl;
+              img.loading = "lazy";
+              img.alt = "Loading...";
+              img.onload = function () { img.alt = ""; };
+              img.onerror = function () { img.alt = "Failed to load image"; };
+              img.tabIndex = 9;
+              messageElement.appendChild(img);
+            } else {
+              var textSpan = document.createElement("span");
+              textSpan.textContent = data.from + ": " + data.message;
+              messageElement.appendChild(textSpan);
+            }
 
-          if (data.seen && data.seenTimestamp && data.from === username) {
-            const timestampSpan = document.createElement("span");
-            timestampSpan.className = "seen-timestamp";
-            timestampSpan.textContent = `Seen: ${formatTimestamp(data.seenTimestamp)}`;
-            messageElement.appendChild(timestampSpan);
+            if (data.seen && data.seenTimestamp && data.from === username) {
+              var timestampSpan = document.createElement("span");
+              timestampSpan.className = "seen-timestamp";
+              timestampSpan.textContent = "Seen: " + formatTimestamp(data.seenTimestamp);
+              messageElement.appendChild(timestampSpan);
+            }
+
+            if (data.from !== username) {
+              var receivedTimestampSpan = document.createElement("span");
+              receivedTimestampSpan.className = "received-timestamp";
+              receivedTimestampSpan.textContent = formatSendTime(data.timestamp);
+              messageElement.appendChild(receivedTimestampSpan);
+            }
           }
 
           messageContainer.appendChild(messageElement);
 
-          if (data.reaction) {
-            const reactionSpan = document.createElement("span");
+          if (!data.deleted && data.reaction) {
+            var reactionSpan = document.createElement("span");
             reactionSpan.className = "reaction";
             reactionSpan.textContent = data.reaction;
             messageContainer.appendChild(reactionSpan);
           }
 
-          const emojiContainer = document.createElement("div");
-          emojiContainer.className = "emoji-container";
-          const emojis = ["👍", "😂", "❤", "😢", "😡", "😮"];
-          emojis.forEach(emoji => {
-            const span = document.createElement("span");
-            span.className = "emoji";
-            span.textContent = emoji;
-            span.tabIndex = 10;
-            emojiContainer.appendChild(span);
-          });
-          messageContainer.appendChild(emojiContainer);
+          if (!data.deleted) {
+            var emojiContainer = document.createElement("div");
+            emojiContainer.className = "emoji-container";
+            var emojis = ["👍", "😂", "❤", "😢", "😡", "😮"];
+            for (var i = 0; i < emojis.length; i++) {
+              var span = document.createElement("span");
+              span.className = "emoji";
+              span.textContent = emojis[i];
+              span.tabIndex = 10;
+              emojiContainer.appendChild(span);
+            }
+            messageContainer.appendChild(emojiContainer);
+
+            var actionContainer = document.createElement("div");
+            actionContainer.className = "action-container";
+            var deleteForMeButton = document.createElement("span");
+            deleteForMeButton.className = "action-button delete-for-me";
+            deleteForMeButton.textContent = "Delete for Me";
+            deleteForMeButton.tabIndex = 11;
+            actionContainer.appendChild(deleteForMeButton);
+
+            if (data.from === username) {
+              var deleteForEveryoneButton = document.createElement("span");
+              deleteForEveryoneButton.className = "action-button delete-for-everyone";
+              deleteForEveryoneButton.textContent = "Delete for Everyone";
+              deleteForEveryoneButton.tabIndex = 12;
+              actionContainer.appendChild(deleteForEveryoneButton);
+            }
+
+            if (data.mediaType === "image") {
+              var fullscreenButton = document.createElement("span");
+              fullscreenButton.className = "action-button";
+              fullscreenButton.textContent = "Fullscreen";
+              fullscreenButton.tabIndex = 13;
+              actionContainer.appendChild(fullscreenButton);
+            }
+            
+            messageContainer.appendChild(actionContainer);
+          }
 
           chatBox.appendChild(messageContainer);
           messages.push({ id: messageId, element: messageContainer });
@@ -1005,35 +1125,72 @@ button:hover {
       });
 
       chatRef.on("child_changed", function (snapshot) {
-        const messageId = snapshot.key;
-        const data = snapshot.val();
-        const messageElement = document.getElementById(`msg-${messageId}`);
+        var messageId = snapshot.key;
+        var data = snapshot.val();
+        var messageElement = document.getElementById("msg-" + messageId);
         if (messageElement) {
-          if (data.reaction) {
-            let reactionSpan = messageElement.parentElement.querySelector(".reaction");
-            if (!reactionSpan) {
-              reactionSpan = document.createElement("span");
-              reactionSpan.className = "reaction";
-              messageElement.parentElement.appendChild(reactionSpan);
+          if (data.deleted) {
+            messageElement.className = "message deleted-message";
+            messageElement.innerHTML = "<span>Message deleted</span>";
+            var reactionSpan = messageElement.parentElement.querySelector(".reaction");
+            if (reactionSpan) reactionSpan.parentElement.removeChild(reactionSpan);
+            var emojiContainer = messageElement.parentElement.querySelector(".emoji-container");
+            if (emojiContainer) emojiContainer.parentElement.removeChild(emojiContainer);
+            var actionContainer = messageElement.parentElement.querySelector(".action-container");
+            if (actionContainer) actionContainer.parentElement.removeChild(actionContainer);
+          } else {
+            if (data.reaction) {
+              var reactionSpan = messageElement.parentElement.querySelector(".reaction");
+              if (!reactionSpan) {
+                reactionSpan = document.createElement("span");
+                reactionSpan.className = "reaction";
+                messageElement.parentElement.appendChild(reactionSpan);
+              }
+              reactionSpan.textContent = data.reaction;
             }
-            reactionSpan.textContent = data.reaction;
-          }
-          if (data.seen && data.seenTimestamp && data.from === username) {
-            let timestampSpan = messageElement.querySelector(".seen-timestamp");
-            if (!timestampSpan) {
-              timestampSpan = document.createElement("span");
-              timestampSpan.className = "seen-timestamp";
-              messageElement.appendChild(timestampSpan);
+            if (data.seen && data.seenTimestamp && data.from === username) {
+              var timestampSpan = messageElement.querySelector(".seen-timestamp");
+              if (!timestampSpan) {
+                timestampSpan = document.createElement("span");
+                timestampSpan.className = "seen-timestamp";
+                messageElement.appendChild(timestampSpan);
+              }
+              timestampSpan.textContent = "Seen: " + formatTimestamp(data.seenTimestamp);
             }
-            timestampSpan.textContent = `Seen: ${formatTimestamp(data.seenTimestamp)}`;
+            updateMessageColor(messageId);
           }
-          updateMessageColor(messageId);
         }
       });
 
       otherChatRef.on("child_changed", function (snapshot) {
-        const messageId = snapshot.key;
+        var messageId = snapshot.key;
+        var data = snapshot.val();
+        var messageElement = document.getElementById("msg-" + messageId);
+        if (messageElement && data.deleted) {
+          messageElement.className = "message deleted-message";
+          messageElement.innerHTML = "<span>Message deleted</span>";
+          var reactionSpan = messageElement.parentElement.querySelector(".reaction");
+          if (reactionSpan) reactionSpan.parentElement.removeChild(reactionSpan);
+          var emojiContainer = messageElement.parentElement.querySelector(".emoji-container");
+          if (emojiContainer) emojiContainer.parentElement.removeChild(emojiContainer);
+          var actionContainer = messageElement.parentElement.querySelector(".action-container");
+          if (actionContainer) actionContainer.parentElement.removeChild(actionContainer);
+        }
         updateMessageColor(messageId);
+      });
+
+      chatRef.on("child_removed", function (snapshot) {
+        var messageId = snapshot.key;
+        var messageElement = document.getElementById("msg-" + messageId);
+        if (messageElement) {
+          messageElement.parentElement.removeChild(messageElement.parentElement);
+          for (var i = 0; i < messages.length; i++) {
+            if (messages[i].id === messageId) {
+              messages.splice(i, 1);
+              break;
+            }
+          }
+        }
       });
 
       setTimeout(function () {
@@ -1048,7 +1205,7 @@ button:hover {
       });
 
       sendButton.onclick = function () {
-        const message = messageInput.value.trim();
+        var message = messageInput.value.trim();
         if (message) {
           sendMessage(message, "text");
           messageInput.value = "";
@@ -1069,14 +1226,14 @@ button:hover {
     }
 
     function uploadFileToCloudinary(file, onProgress) {
-      return new Promise((resolve, reject) => {
-        const formData = new FormData();
+      return new Promise(function (resolve, reject) {
+        var formData = new FormData();
         formData.append("file", file);
         formData.append("upload_preset", "Chitchat");
         formData.append("cloud_name", "dcv3kn2gu");
 
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", `https://api.cloudinary.com/v1_1/dcv3kn2gu/upload`, true);
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://api.cloudinary.com/v1_1/dcv3kn2gu/upload", true);
 
         xhr.upload.onprogress = function (e) {
           if (e.lengthComputable) {
@@ -1086,7 +1243,7 @@ button:hover {
 
         xhr.onload = function () {
           if (xhr.status === 200) {
-            const response = JSON.parse(xhr.responseText);
+            var response = JSON.parse(xhr.responseText);
             resolve(response.secure_url);
           } else {
             reject(new Error("Upload failed"));
@@ -1102,17 +1259,17 @@ button:hover {
     }
 
     function sendImage() {
-      const input = document.createElement("input");
+      var input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
       input.onchange = function (e) {
-        const file = e.target.files[0];
+        var file = e.target.files[0];
         if (file) {
-          uploadFileToCloudinary(file, (progress) => {
-            console.log(`Upload progress: ${progress}%`);
-          }).then((url) => {
+          uploadFileToCloudinary(file, function (progress) {
+            console.log("Upload progress: " + progress + "%");
+          }).then(function (url) {
             sendMessage(url, "image");
-          }).catch((error) => {
+          }).catch(function (error) {
             console.error("Error uploading image:", error);
           });
         }
@@ -1121,7 +1278,7 @@ button:hover {
     }
 
     document.getElementById("searchButton").onclick = function () {
-      const searchName = document.getElementById("searchInput").value.trim();
+      var searchName = document.getElementById("searchInput").value.trim();
       if (!searchName) return showCustomAlert("Please enter a name.");
 
       firebase.database().ref("users/" + searchName).once("value", function (snapshot) {
@@ -1129,12 +1286,14 @@ button:hover {
           Promise.all([
             isUserBlocked(username, searchName),
             isUserBlocked(searchName, username)
-          ]).then(([userBlocked, blockedByUser]) => {
+          ]).then(function (results) {
+            var userBlocked = results[0];
+            var blockedByUser = results[1];
             if (userBlocked) {
-              showConfirmPrompt(`User ${searchName} is blocked. Do you want to unblock and chat?`, (confirmed) => {
+              showConfirmPrompt("User " + searchName + " is blocked. Do you want to unblock and chat?", function (confirmed) {
                 if (confirmed) {
                   unblockUser(username, searchName);
-                  showCustomAlert("User unblocked! Starting private chat...", () => {
+                  showCustomAlert("User unblocked! Starting private chat...", function () {
                     openChat(searchName);
                     updatePrivateChatList(username, searchName);
                   });
@@ -1143,18 +1302,18 @@ button:hover {
                 }
               });
             } else if (blockedByUser) {
-              showCustomAlert(`${searchName} has blocked you.`, () => {
+              showCustomAlert(searchName + " has blocked you.", function () {
                 document.getElementById("searchInput").focus();
               });
             } else {
-              showCustomAlert("User found! Starting private chat...", () => {
+              showCustomAlert("User found! Starting private chat...", function () {
                 openChat(searchName);
                 updatePrivateChatList(username, searchName);
               });
             }
           });
         } else {
-          showCustomAlert("User not found.", () => {
+          showCustomAlert("User not found.", function () {
             document.getElementById("searchInput").focus();
           });
         }
@@ -1162,20 +1321,20 @@ button:hover {
     };
 
     changeBackgroundButton.onclick = function () {
-      const input = document.createElement("input");
+      var input = document.createElement("input");
       input.type = "file";
       input.accept = "image/*";
       input.onchange = function (e) {
-        const file = e.target.files[0];
+        var file = e.target.files[0];
         if (file) {
-          uploadFileToCloudinary(file, (progress) => {
-            console.log(`Background upload progress: ${progress}%`);
-          }).then((url) => {
-            chatBox.style.backgroundImage = `url(${url})`;
+          uploadFileToCloudinary(file, function (progress) {
+            console.log("Background upload progress: " + progress + "%");
+          }).then(function (url) {
+            chatBox.style.backgroundImage = "url(" + url + ")";
             chatBox.style.backgroundSize = "cover";
             chatBox.style.backgroundPosition = "center";
             localStorage.setItem("chatBackground", url);
-          }).catch((error) => {
+          }).catch(function (error) {
             console.error("Error uploading background image:", error);
           });
         }
@@ -1184,16 +1343,16 @@ button:hover {
     };
 
     changeThemeButton.onclick = function () {
-      const themes = [
+      var themes = [
         "rainbow-theme", "skyway-theme", "night-theme", "forest-theme", "sunset-theme", "ocean-theme",
         "lavender-theme", "galaxy-theme", "neon-theme", "desert-theme", "aurora-theme", "candy-theme",
         "neon-glowing-theme", "cosmic-dust-theme", "tropical-vibe-theme", "electric-pulse-theme",
         "mystic-dawn-theme", "firestorm-theme", "glacial-glow-theme", "retro-wave-theme", "golden-horizon-theme"
       ];
-      const currentTheme = document.body.className;
-      const currentIndex = themes.indexOf(currentTheme);
-      const nextIndex = (currentIndex + 1) % themes.length;
-      const nextTheme = themes[nextIndex];
+      var currentTheme = document.body.className;
+      var currentIndex = themes.indexOf(currentTheme);
+      var nextIndex = (currentIndex + 1) % themes.length;
+      var nextTheme = themes[nextIndex];
       document.body.className = nextTheme;
       localStorage.setItem("chatTheme", nextTheme);
     };
@@ -1207,10 +1366,10 @@ button:hover {
       if (currentEmojiContainer) {
         currentEmojiContainer.style.display = "none";
       }
-      const emojiContainer = messageContainer.querySelector(".emoji-container");
+      var emojiContainer = messageContainer.querySelector(".emoji-container");
       emojiContainer.style.display = "flex";
       currentEmojiContainer = emojiContainer;
-      const firstEmoji = emojiContainer.querySelector(".emoji");
+      var firstEmoji = emojiContainer.querySelector(".emoji");
       if (firstEmoji) firstEmoji.focus();
     }
 
@@ -1221,26 +1380,65 @@ button:hover {
       }
     }
 
+    function showActionContainer(messageContainer) {
+      if (currentActionContainer) {
+        currentActionContainer.style.display = "none";
+      }
+      var actionContainer = messageContainer.querySelector(".action-container");
+      actionContainer.style.display = "flex";
+      currentActionContainer = actionContainer;
+    }
+
+    function hideActionContainer() {
+      if (currentActionContainer) {
+        currentActionContainer.style.display = "none";
+        currentActionContainer = null;
+      }
+    }
+
     function addReaction(messageId, emoji) {
-      const messageRef = firebase.database().ref(`privateChats/${username}/${currentChatType}/${messageId}`);
+      var messageRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId);
       messageRef.update({ reaction: emoji });
-      firebase.database().ref(`privateChats/${currentChatType}/${username}/${messageId}`).update({ reaction: emoji });
+      firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId).update({ reaction: emoji });
+    }
+
+    function deleteMessageForMe(messageId) {
+      firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId).remove();
+    }
+
+    function deleteMessageForEveryone(messageId) {
+      var senderRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId);
+      var receiverRef = firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId);
+      
+      // Update both sender and receiver to mark as deleted
+      senderRef.update({ 
+        deleted: true, 
+        message: null, 
+        mediaUrl: null, 
+        mediaType: null 
+      });
+      receiverRef.update({ 
+        deleted: true, 
+        message: null, 
+        mediaUrl: null, 
+        mediaType: null 
+      });
     }
 
     function navigate(offset) {
-      const elements = Array.from(document.querySelectorAll(".navItem, .message, .emoji"));
-      const index = elements.indexOf(document.activeElement);
-      const target = elements[index + offset];
+      var elements = Array.from(document.querySelectorAll(".navItem, .message, .emoji, .action-button"));
+      var index = elements.indexOf(document.activeElement);
+      var target = elements[index + offset];
       if (target) target.focus();
     }
 
     document.addEventListener("keydown", function (e) {
       if (isAlertActive) {
-        const alertBox = document.querySelector(".custom-alert");
+        var alertBox = document.querySelector(".custom-alert");
         if (alertBox) {
-          const input = alertBox.querySelector("#promptInput");
-          const okButton = alertBox.querySelector("#promptOkButton") || alertBox.querySelector("#alertOkButton");
-          const cancelButton = alertBox.querySelector("#confirmCancelButton");
+          var input = alertBox.querySelector("#promptInput");
+          var okButton = alertBox.querySelector("#promptOkButton") || alertBox.querySelector("#alertOkButton");
+          var cancelButton = alertBox.querySelector("#confirmCancelButton");
           if (input && e.key === "ArrowDown" && document.activeElement === input) {
             okButton.focus();
           } else if (okButton && e.key === "ArrowUp" && document.activeElement === okButton) {
@@ -1254,15 +1452,61 @@ button:hover {
         return;
       }
 
-      const fullscreenImage = document.querySelector(".fullscreen-image");
+      var fullscreenImage = document.querySelector(".fullscreen-image");
       if (fullscreenImage) {
         fullscreenImage.classList.remove("fullscreen-image");
+        var messageContainer = fullscreenImage.closest(".message-container");
+        var fullscreenButton = messageContainer.querySelector(".action-button[textContent='Fullscreen']");
+        if (fullscreenButton) fullscreenButton.focus();
         return;
       }
 
+      if (currentEmojiContainer || currentActionContainer) {
+        var activeElement = document.activeElement;
+        if (e.key === "ArrowLeft") {
+          if (activeElement.className === "emoji") {
+            var emojis = Array.from(currentEmojiContainer.children);
+            var index = emojis.indexOf(activeElement);
+            if (index > 0) {
+              emojis[index - 1].focus();
+            } else {
+              emojis[emojis.length - 1].focus();
+            }
+          } else if (activeElement.className.indexOf("action-button") !== -1) {
+            var actions = Array.from(currentActionContainer.children);
+            var index = actions.indexOf(activeElement);
+            if (index > 0) {
+              actions[index - 1].focus();
+            } else {
+              currentEmojiContainer.children[0].focus();
+            }
+          }
+        } else if (e.key === "ArrowRight") {
+          if (activeElement.className === "emoji") {
+            var emojis = Array.from(currentEmojiContainer.children);
+            var index = emojis.indexOf(activeElement);
+            if (index < emojis.length - 1) {
+              emojis[index + 1].focus();
+            } else if (currentActionContainer) {
+              currentActionContainer.children[0].focus();
+            } else {
+              emojis[0].focus();
+            }
+          } else if (activeElement.className.indexOf("action-button") !== -1) {
+            var actions = Array.from(currentActionContainer.children);
+            var index = actions.indexOf(activeElement);
+            if (index < actions.length - 1) {
+              actions[index + 1].focus();
+            } else {
+              currentEmojiContainer.children[0].focus();
+            }
+          }
+        }
+      }
+
       if (e.key === "ArrowDown") {
-        const messagesList = Array.from(document.querySelectorAll(".message"));
-        const index = messagesList.indexOf(document.activeElement);
+        var messagesList = Array.from(document.querySelectorAll(".message"));
+        var index = messagesList.indexOf(document.activeElement);
         if (index !== -1 && index < messagesList.length - 1) {
           messagesList[index + 1].focus();
         } else {
@@ -1271,8 +1515,8 @@ button:hover {
       }
 
       if (e.key === "ArrowUp") {
-        const messagesList = Array.from(document.querySelectorAll(".message"));
-        const index = messagesList.indexOf(document.activeElement);
+        var messagesList = Array.from(document.querySelectorAll(".message"));
+        var index = messagesList.indexOf(document.activeElement);
         if (index > 0) {
           messagesList[index - 1].focus();
         } else {
@@ -1280,42 +1524,47 @@ button:hover {
         }
       }
 
-      if (e.key === "ArrowLeft" && document.activeElement.className === "emoji") {
-        const emojis = Array.from(document.activeElement.parentElement.children);
-        const index = emojis.indexOf(document.activeElement);
-        if (index > 0) emojis[index - 1].focus();
-      }
-
-      if (e.key === "ArrowRight" && document.activeElement.className === "emoji") {
-        const emojis = Array.from(document.activeElement.parentElement.children);
-        const index = emojis.indexOf(document.activeElement);
-        if (index < emojis.length - 1) emojis[index + 1].focus();
-      }
-
       if (e.key === "Enter") {
-        const activeElement = document.activeElement;
+        var activeElement = document.activeElement;
         if (activeElement.className === "emoji") {
-          const messageContainer = activeElement.closest(".message-container");
-          const messageId = messageContainer.querySelector(".message").id.replace("msg-", "");
+          var messageContainer = activeElement.closest(".message-container");
+          var messageId = messageContainer.querySelector(".message").id.replace("msg-", "");
           addReaction(messageId, activeElement.textContent);
           hideEmojiContainer();
+          hideActionContainer();
           messageContainer.querySelector(".message").focus();
-        } else if (activeElement.className.includes("message")) {
-          const img = activeElement.querySelector("img");
-          if (img) {
-            showCustomPrompt("Select an option:\nOptions:\n1. Fullscreen\n2. Delete", (choice) => {
-              if (choice === "1") {
-                toggleFullScreen(img);
-              } else if (choice === "2") {
-                const messageId = activeElement.id.replace("msg-", "");
-                firebase.database().ref(`privateChats/${username}/${currentChatType}/${messageId}`).remove();
-                firebase.database().ref(`privateChats/${currentChatType}/${username}/${messageId}`).remove();
-                activeElement.parentElement.remove();
-              }
-            }, ["1", "2"]);
-          } else {
-            showEmojiContainer(activeElement.parentElement);
+        } else if (activeElement.className.indexOf("action-button") !== -1) {
+          var messageContainer = activeElement.closest(".message-container");
+          var messageId = messageContainer.querySelector(".message").id.replace("msg-", "");
+          var messagesList = Array.from(document.querySelectorAll(".message-container"));
+          var currentIndex = messagesList.indexOf(messageContainer);
+          var nextMessage = (currentIndex < messagesList.length - 1) ? messagesList[currentIndex + 1].querySelector(".message") : null;
+
+          if (activeElement.textContent === "Delete for Me") {
+            deleteMessageForMe(messageId);
+            messageContainer.remove();
+            hideEmojiContainer();
+            hideActionContainer();
+            if (nextMessage) nextMessage.focus();
+            else if (currentIndex > 0) messagesList[currentIndex - 1].querySelector(".message").focus();
+            else document.getElementById("messageInput").focus();
+          } else if (activeElement.textContent === "Delete for Everyone") {
+            deleteMessageForEveryone(messageId);
+            hideEmojiContainer();
+            hideActionContainer();
+            if (nextMessage) nextMessage.focus();
+            else if (currentIndex > 0) messagesList[currentIndex - 1].querySelector(".message").focus();
+            else document.getElementById("messageInput").focus();
+          } else if (activeElement.textContent === "Fullscreen") {
+            var img = messageContainer.querySelector("img");
+            if (img) toggleFullScreen(img);
+            hideEmojiContainer();
+            hideActionContainer();
           }
+        } else if (activeElement.className.indexOf("message") !== -1) {
+          var messageContainer = activeElement.parentElement;
+          showEmojiContainer(messageContainer);
+          showActionContainer(messageContainer);
         }
       }
 
@@ -1323,7 +1572,7 @@ button:hover {
         if (chatPage.classList.contains("active")) {
           chatPage.classList.remove("active");
           mainPage.classList.add("active");
-          softKeysContainer.style.display = "none"; // Hide footer when returning to main page
+          softKeysContainer.style.display = "none";
           document.getElementById("searchInput").focus();
           if (chatRef) chatRef.off();
           if (otherChatRef) otherChatRef.off();
@@ -1333,7 +1582,7 @@ button:hover {
       if (e.key === "5") {
         pressCount++;
         if (pressCount === 1) {
-          const lastMessage = messages[messages.length - 1];
+          var lastMessage = messages[messages.length - 1];
           if (lastMessage) lastMessage.element.querySelector(".message").focus();
         } else if (pressCount === 2) {
           sendButton.focus();
