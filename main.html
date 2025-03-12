@@ -395,6 +395,15 @@ button:hover {
   font-style: italic;  
 }  
 
+.blocked-message {
+  background: linear-gradient(145deg, #ff4444, #ff9999);
+  color: white;
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+  margin: 10px 0;
+}
+
 /* Themes */  
 .rainbow-theme { background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff); color: #333; }  
 .skyway-theme { background: linear-gradient(180deg, #87CEEB, #E0F7FA); color: #333; }  
@@ -533,6 +542,7 @@ button:hover {
     var currentActionContainer = null;
     var shownAlerts = new Set();
     var isAlertActive = false;
+    var isBlockedByUser = false;
 
     document.addEventListener("DOMContentLoaded", function () {
       var savedBackground = localStorage.getItem("chatBackground");
@@ -1005,216 +1015,255 @@ button:hover {
       chatRef = firebase.database().ref("privateChats/" + username + "/" + chatType);
       otherChatRef = firebase.database().ref("privateChats/" + chatType + "/" + username);
 
-      var presenceRef = firebase.database().ref("presence/" + chatType);
-      presenceRef.on("value", function (snap) {
-        var presence = snap.val();
-        if (presence && presence.online) {
-          chatHeader.innerHTML = "Chat with " + chatType + ' <span class="last-seen">Online</span>';
-        } else if (presence) {
-          chatHeader.innerHTML = "Chat with " + chatType + ' <span class="last-seen">Last seen: ' + formatLastSeen(presence.lastSeen) + "</span>";
-        } else {
-          chatHeader.innerHTML = "Chat with " + chatType;
-        }
-      });
+      // Check if user is blocked
+      isUserBlocked(chatType, username).then(function(blocked) {
+        isBlockedByUser = blocked;
+        updateChatUI();
 
-      chatRef.orderByChild("timestamp").limitToLast(20).on("child_added", function (snapshot) {
-        var messageId = snapshot.key;
-        if (processedMessages.has(messageId)) return;
-
-        var data = snapshot.val();
-        if (data) {
-          processedMessages.add(messageId);
-          
-          var messageContainer = document.createElement("div");
-          messageContainer.className = "message-container " + (data.from === username ? "sent-container" : "received-container");
-          
-          var messageElement = document.createElement("div");
-          messageElement.id = "msg-" + messageId;
-          messageElement.tabIndex = 8;
-
-          if (data.deleted) {
-            messageElement.className = "message deleted-message";
-            messageElement.innerHTML = "<span>Message deleted</span>";
-          } else if (data.message || data.mediaUrl) {
-            messageElement.className = "message " + (data.from === username ? "sent" : "received");
-            if (data.mediaType === "image") {
-              var img = document.createElement("img");
-              img.src = data.mediaUrl;
-              img.loading = "lazy";
-              img.alt = "Loading...";
-              img.onload = function () { img.alt = ""; };
-              img.onerror = function () { img.alt = "Failed to load image"; };
-              img.tabIndex = 9;
-              messageElement.appendChild(img);
-            } else {
-              var textSpan = document.createElement("span");
-              textSpan.textContent = data.from + ": " + data.message;
-              messageElement.appendChild(textSpan);
-            }
-
-            if (data.seen && data.seenTimestamp && data.from === username) {
-              var timestampSpan = document.createElement("span");
-              timestampSpan.className = "seen-timestamp";
-              timestampSpan.textContent = "Seen: " + formatTimestamp(data.seenTimestamp);
-              messageElement.appendChild(timestampSpan);
-            }
-
-            if (data.from !== username) {
-              var receivedTimestampSpan = document.createElement("span");
-              receivedTimestampSpan.className = "received-timestamp";
-              receivedTimestampSpan.textContent = formatSendTime(data.timestamp);
-              messageElement.appendChild(receivedTimestampSpan);
-            }
-          }
-
-          messageContainer.appendChild(messageElement);
-
-          if (!data.deleted && data.reaction) {
-            var reactionSpan = document.createElement("span");
-            reactionSpan.className = "reaction";
-            reactionSpan.textContent = data.reaction;
-            messageContainer.appendChild(reactionSpan);
-          }
-
-          if (!data.deleted) {
-            var emojiContainer = document.createElement("div");
-            emojiContainer.className = "emoji-container";
-            var emojis = ["👍", "😂", "❤", "😢", "😡", "😮"];
-            for (var i = 0; i < emojis.length; i++) {
-              var span = document.createElement("span");
-              span.className = "emoji";
-              span.textContent = emojis[i];
-              span.tabIndex = 10;
-              emojiContainer.appendChild(span);
-            }
-            messageContainer.appendChild(emojiContainer);
-
-            var actionContainer = document.createElement("div");
-            actionContainer.className = "action-container";
-            var deleteForMeButton = document.createElement("span");
-            deleteForMeButton.className = "action-button delete-for-me";
-            deleteForMeButton.textContent = "Delete for Me";
-            deleteForMeButton.tabIndex = 11;
-            actionContainer.appendChild(deleteForMeButton);
-
-            if (data.from === username) {
-              var deleteForEveryoneButton = document.createElement("span");
-              deleteForEveryoneButton.className = "action-button delete-for-everyone";
-              deleteForEveryoneButton.textContent = "Delete for Everyone";
-              deleteForEveryoneButton.tabIndex = 12;
-              actionContainer.appendChild(deleteForEveryoneButton);
-            }
-
-            if (data.mediaType === "image") {
-              var fullscreenButton = document.createElement("span");
-              fullscreenButton.className = "action-button";
-              fullscreenButton.textContent = "Fullscreen";
-              fullscreenButton.tabIndex = 13;
-              actionContainer.appendChild(fullscreenButton);
-            }
-            
-            messageContainer.appendChild(actionContainer);
-          }
-
-          chatBox.appendChild(messageContainer);
-          messages.push({ id: messageId, element: messageContainer });
-          chatBox.scrollTop = chatBox.scrollHeight;
-
-          updateMessageColor(messageId);
-        }
-      });
-
-      chatRef.on("child_changed", function (snapshot) {
-        var messageId = snapshot.key;
-        var data = snapshot.val();
-        var messageElement = document.getElementById("msg-" + messageId);
-        if (messageElement) {
-          if (data.deleted) {
-            messageElement.className = "message deleted-message";
-            messageElement.innerHTML = "<span>Message deleted</span>";
-            var reactionSpan = messageElement.parentElement.querySelector(".reaction");
-            if (reactionSpan) reactionSpan.parentElement.removeChild(reactionSpan);
-            var emojiContainer = messageElement.parentElement.querySelector(".emoji-container");
-            if (emojiContainer) emojiContainer.parentElement.removeChild(emojiContainer);
-            var actionContainer = messageElement.parentElement.querySelector(".action-container");
-            if (actionContainer) actionContainer.parentElement.removeChild(actionContainer);
+        var presenceRef = firebase.database().ref("presence/" + chatType);
+        presenceRef.on("value", function (snap) {
+          var presence = snap.val();
+          if (presence && presence.online) {
+            chatHeader.innerHTML = "Chat with " + chatType + ' <span class="last-seen">Online</span>';
+          } else if (presence) {
+            chatHeader.innerHTML = "Chat with " + chatType + ' <span class="last-seen">Last seen: ' + formatLastSeen(presence.lastSeen) + "</span>";
           } else {
-            if (data.reaction) {
-              var reactionSpan = messageElement.parentElement.querySelector(".reaction");
-              if (!reactionSpan) {
-                reactionSpan = document.createElement("span");
-                reactionSpan.className = "reaction";
-                messageElement.parentElement.appendChild(reactionSpan);
+            chatHeader.innerHTML = "Chat with " + chatType;
+          }
+        });
+
+        // Listen for block status changes
+        firebase.database().ref("blocked/" + chatType + "/" + username).on("value", function(snapshot) {
+          isBlockedByUser = snapshot.exists();
+          updateChatUI();
+        });
+
+        chatRef.orderByChild("timestamp").limitToLast(20).on("child_added", function (snapshot) {
+          var messageId = snapshot.key;
+          if (processedMessages.has(messageId)) return;
+
+          var data = snapshot.val();
+          if (data) {
+            processedMessages.add(messageId);
+            
+            var messageContainer = document.createElement("div");
+            messageContainer.className = "message-container " + (data.from === username ? "sent-container" : "received-container");
+            
+            var messageElement = document.createElement("div");
+            messageElement.id = "msg-" + messageId;
+            messageElement.tabIndex = 8;
+
+            if (data.deleted) {
+              messageElement.className = "message deleted-message";
+              messageElement.innerHTML = "<span>Message deleted</span>";
+            } else if (data.message || data.mediaUrl) {
+              messageElement.className = "message " + (data.from === username ? "sent" : "received");
+              if (data.mediaType === "image") {
+                var img = document.createElement("img");
+                img.src = data.mediaUrl;
+                img.loading = "lazy";
+                img.alt = "Loading...";
+                img.onload = function () { img.alt = ""; };
+                img.onerror = function () { img.alt = "Failed to load image"; };
+                img.tabIndex = 9;
+                messageElement.appendChild(img);
+              } else {
+                var textSpan = document.createElement("span");
+                textSpan.textContent = data.from + ": " + data.message;
+                messageElement.appendChild(textSpan);
               }
-              reactionSpan.textContent = data.reaction;
-            }
-            if (data.seen && data.seenTimestamp && data.from === username) {
-              var timestampSpan = messageElement.querySelector(".seen-timestamp");
-              if (!timestampSpan) {
-                timestampSpan = document.createElement("span");
+
+              if (data.seen && data.seenTimestamp && data.from === username) {
+                var timestampSpan = document.createElement("span");
                 timestampSpan.className = "seen-timestamp";
+                timestampSpan.textContent = "Seen: " + formatTimestamp(data.seenTimestamp);
                 messageElement.appendChild(timestampSpan);
               }
-              timestampSpan.textContent = "Seen: " + formatTimestamp(data.seenTimestamp);
+
+              if (data.from !== username) {
+                var receivedTimestampSpan = document.createElement("span");
+                receivedTimestampSpan.className = "received-timestamp";
+                receivedTimestampSpan.textContent = formatSendTime(data.timestamp);
+                messageElement.appendChild(receivedTimestampSpan);
+              }
+            }
+
+            messageContainer.appendChild(messageElement);
+
+            if (!data.deleted && data.reaction) {
+              var reactionSpan = document.createElement("span");
+              reactionSpan.className = "reaction";
+              reactionSpan.textContent = data.reaction;
+              messageContainer.appendChild(reactionSpan);
+            }
+
+            if (!data.deleted) {
+              var emojiContainer = document.createElement("div");
+              emojiContainer.className = "emoji-container";
+              var emojis = ["👍", "😂", "❤", "😢", "😡", "😮"];
+              for (var i = 0; i < emojis.length; i++) {
+                var span = document.createElement("span");
+                span.className = "emoji";
+                span.textContent = emojis[i];
+                span.tabIndex = 10;
+                emojiContainer.appendChild(span);
+              }
+              messageContainer.appendChild(emojiContainer);
+
+              var actionContainer = document.createElement("div");
+              actionContainer.className = "action-container";
+              var deleteForMeButton = document.createElement("span");
+              deleteForMeButton.className = "action-button delete-for-me";
+              deleteForMeButton.textContent = "Delete for Me";
+              deleteForMeButton.tabIndex = 11;
+              actionContainer.appendChild(deleteForMeButton);
+
+              if (data.from === username) {
+                var deleteForEveryoneButton = document.createElement("span");
+                deleteForEveryoneButton.className = "action-button delete-for-everyone";
+                deleteForEveryoneButton.textContent = "Delete for Everyone";
+                deleteForEveryoneButton.tabIndex = 12;
+                actionContainer.appendChild(deleteForEveryoneButton);
+              }
+
+              if (data.mediaType === "image") {
+                var fullscreenButton = document.createElement("span");
+                fullscreenButton.className = "action-button";
+                fullscreenButton.textContent = "Fullscreen";
+                fullscreenButton.tabIndex = 13;
+                actionContainer.appendChild(fullscreenButton);
+              }
+              
+              messageContainer.appendChild(actionContainer);
+            }
+
+            chatBox.appendChild(messageContainer);
+            messages.push({ id: messageId, element: messageContainer });
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            updateMessageColor(messageId);
+          }
+        });
+
+        chatRef.on("child_changed", function (snapshot) {
+          var messageId = snapshot.key;
+          var data = snapshot.val();
+          var messageElement = document.getElementById("msg-" + messageId);
+          if (messageElement) {
+            if (data.deleted) {
+              messageElement.className = "message deleted-message";
+              messageElement.innerHTML = "<span>Message deleted</span>";
+              var reactionSpan = messageElement.parentElement.querySelector(".reaction");
+              if (reactionSpan) reactionSpan.parentElement.removeChild(reactionSpan);
+              var emojiContainer = messageElement.parentElement.querySelector(".emoji-container");
+              if (emojiContainer) emojiContainer.parentElement.removeChild(emojiContainer);
+              var actionContainer = messageElement.parentElement.querySelector(".action-container");
+              if (actionContainer) actionContainer.parentElement.removeChild(actionContainer);
+            } else {
+              if (data.reaction) {
+                var reactionSpan = messageElement.parentElement.querySelector(".reaction");
+                if (!reactionSpan) {
+                  reactionSpan = document.createElement("span");
+                  reactionSpan.className = "reaction";
+                  messageElement.parentElement.appendChild(reactionSpan);
+                }
+                reactionSpan.textContent = data.reaction;
+              }
+              if (data.seen && data.seenTimestamp && data.from === username) {
+                var timestampSpan = messageElement.querySelector(".seen-timestamp");
+                if (!timestampSpan) {
+                  timestampSpan = document.createElement("span");
+                  timestampSpan.className = "seen-timestamp";
+                  messageElement.appendChild(timestampSpan);
+                }
+                timestampSpan.textContent = "Seen: " + formatTimestamp(data.seenTimestamp);
+              }
+              updateMessageColor(messageId);
+            }
+          }
+        });
+
+        otherChatRef.on("child_changed", function (snapshot) {
+          var messageId = snapshot.key;
+          var data = snapshot.val();
+          var messageElement = document.getElementById("msg-" + messageId);
+          if (messageElement) {
+            if (data.deleted) {
+              messageElement.className = "message deleted-message";
+              messageElement.innerHTML = "<span>Message deleted</span>";
+              var reactionSpan = messageElement.parentElement.querySelector(".reaction");
+              if (reactionSpan) reactionSpan.parentElement.removeChild(reactionSpan);
+              var emojiContainer = messageElement.parentElement.querySelector(".emoji-container");
+              if (emojiContainer) emojiContainer.parentElement.removeChild(emojiContainer);
+              var actionContainer = messageElement.parentElement.querySelector(".action-container");
+              if (actionContainer) actionContainer.parentElement.removeChild(actionContainer);
             }
             updateMessageColor(messageId);
           }
-        }
-      });
+        });
 
-      otherChatRef.on("child_changed", function (snapshot) {
-        var messageId = snapshot.key;
-        var data = snapshot.val();
-        var messageElement = document.getElementById("msg-" + messageId);
-        if (messageElement && data.deleted) {
-          messageElement.className = "message deleted-message";
-          messageElement.innerHTML = "<span>Message deleted</span>";
-          var reactionSpan = messageElement.parentElement.querySelector(".reaction");
-          if (reactionSpan) reactionSpan.parentElement.removeChild(reactionSpan);
-          var emojiContainer = messageElement.parentElement.querySelector(".emoji-container");
-          if (emojiContainer) emojiContainer.parentElement.removeChild(emojiContainer);
-          var actionContainer = messageElement.parentElement.querySelector(".action-container");
-          if (actionContainer) actionContainer.parentElement.removeChild(actionContainer);
-        }
-        updateMessageColor(messageId);
-      });
-
-      chatRef.on("child_removed", function (snapshot) {
-        var messageId = snapshot.key;
-        var messageElement = document.getElementById("msg-" + messageId);
-        if (messageElement) {
-          messageElement.parentElement.removeChild(messageElement.parentElement);
-          for (var i = 0; i < messages.length; i++) {
-            if (messages[i].id === messageId) {
-              messages.splice(i, 1);
-              break;
+        chatRef.on("child_removed", function (snapshot) {
+          var messageId = snapshot.key;
+          var messageElement = document.getElementById("msg-" + messageId);
+          if (messageElement) {
+            messageElement.parentElement.removeChild(messageElement.parentElement);
+            for (var i = 0; i < messages.length; i++) {
+              if (messages[i].id === messageId) {
+                messages.splice(i, 1);
+                break;
+              }
             }
           }
-        }
+        });
+
+        setTimeout(function () {
+          document.getElementById("messageInput").focus();
+        }, 100);
+
+        messageInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            sendButton.click();
+          }
+        });
+
+        sendButton.onclick = function () {
+          if (!isBlockedByUser) {
+            var message = messageInput.value.trim();
+            if (message) {
+              sendMessage(message, "text");
+              messageInput.value = "";
+            }
+          }
+        };
+
+        imageButton.onclick = function () {
+          if (!isBlockedByUser) {
+            sendImage();
+          }
+        };
       });
+    }
 
-      setTimeout(function () {
-        document.getElementById("messageInput").focus();
-      }, 100);
+    function updateChatUI() {
+      var messageInputContainer = document.getElementById("messageInputContainer");
+      var blockedMessage = chatBox.querySelector(".blocked-message");
 
-      messageInput.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          sendButton.click();
+      if (isBlockedByUser) {
+        messageInputContainer.style.display = "none";
+        if (!blockedMessage) {
+          var blockedDiv = document.createElement("div");
+          blockedDiv.className = "blocked-message";
+          blockedDiv.innerHTML = "<span>" + currentChatType + " has blocked you</span>";
+          chatBox.appendChild(blockedDiv);
         }
-      });
-
-      sendButton.onclick = function () {
-        var message = messageInput.value.trim();
-        if (message) {
-          sendMessage(message, "text");
-          messageInput.value = "";
+      } else {
+        messageInputContainer.style.display = "flex";
+        if (blockedMessage) {
+          chatBox.removeChild(blockedMessage);
         }
-      };
-
-      imageButton.onclick = function () {
-        sendImage();
-      };
+      }
+      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function toggleFullScreen(img) {
@@ -1410,7 +1459,6 @@ button:hover {
       var senderRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId);
       var receiverRef = firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId);
       
-      // Update both sender and receiver to mark as deleted
       senderRef.update({ 
         deleted: true, 
         message: null, 
