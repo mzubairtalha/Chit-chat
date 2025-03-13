@@ -829,101 +829,125 @@ button:hover {
     function loadPrivateChats() {
       privateChatList.innerHTML = "<h4>Your Private Chats:</h4>";
       firebase.database().ref("privateChats/" + username).on("child_added", function (snapshot) {
-        var partnerName = snapshot.key;
-        isUserBlocked(username, partnerName).then(function (blocked) {
-          if (!blocked) {
-            var userElement = document.createElement("div");
-            userElement.className = "user navItem";
-            userElement.textContent = partnerName;
-            userElement.tabIndex = 7;
+          var partnerName = snapshot.key;
+          isUserBlocked(username, partnerName).then(function (blocked) {
+              if (!blocked) {
+                  var userElement = document.createElement("div");
+                  userElement.className = "user navItem";
+                  var nameSpan = document.createElement("span");
+                  nameSpan.textContent = partnerName;
+                  var unreadSpan = document.createElement("span");
+                  unreadSpan.style.marginLeft = "5px";
+                  unreadSpan.style.color = "red";
+                  unreadSpan.style.fontWeight = "bold";
+                  userElement.appendChild(nameSpan);
+                  userElement.appendChild(unreadSpan);
+                  userElement.tabIndex = 7;
 
-            userElement.onclick = function () {
-              openChat(partnerName);
-              markMessagesAsSeen(partnerName, userElement);
-            };
-
-            userElement.onkeydown = function (e) {
-              if (e.key === "Enter") {
-                if (!shownAlerts.has(partnerName)) {
-                  showCustomPrompt("Select an option for " + partnerName + ":\nOptions:\n1. Chat\n2. Delete\n3. Block", function (choice) {
-                    shownAlerts.add(partnerName);
-                    if (choice === "1") {
+                  userElement.onclick = function () {
                       openChat(partnerName);
                       markMessagesAsSeen(partnerName, userElement);
-                    } else if (choice === "2") {
-                      firebase.database().ref("privateChats/" + username + "/" + partnerName).remove();
-                      userElement.remove();
-                    } else if (choice === "3") {
-                      blockUser(username, partnerName);
-                      userElement.remove();
-                      showCustomAlert(partnerName + " has been blocked and chat history deleted.", function () {
-                        document.getElementById("searchInput").focus();
+                  };
+
+                  userElement.onkeydown = function (e) {
+                      if (e.key === "Enter") {
+                          if (!shownAlerts.has(partnerName)) {
+                              showCustomPrompt("Select an option for " + partnerName + ":\nOptions:\n1. Chat\n2. Delete\n3. Block", function (choice) {
+                                  shownAlerts.add(partnerName);
+                                  if (choice === "1") {
+                                      openChat(partnerName);
+                                      markMessagesAsSeen(partnerName, userElement);
+                                  } else if (choice === "2") {
+                                      firebase.database().ref("privateChats/" + username + "/" + partnerName).remove();
+                                      userElement.remove();
+                                  } else if (choice === "3") {
+                                      blockUser(username, partnerName);
+                                      userElement.remove();
+                                      showCustomAlert(partnerName + " has been blocked and chat history deleted.", function () {
+                                          document.getElementById("searchInput").focus();
+                                      });
+                                  }
+                              }, ["1", "2", "3"]);
+                          } else {
+                              openChat(partnerName);
+                              markMessagesAsSeen(partnerName, userElement);
+                          }
+                      }
+                  };
+                  privateChatList.appendChild(userElement);
+
+                  // Update unread count
+                  function updateUnreadCount() {
+                      var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
+                      chatRef.once("value", function (chatSnapshot) {
+                          var unreadCount = 0;
+                          chatSnapshot.forEach(function (msgSnapshot) {
+                              var data = msgSnapshot.val();
+                              if (data.from === partnerName && !data.seen) {
+                                  unreadCount++;
+                              }
+                          });
+                          unreadSpan.textContent = unreadCount > 0 ? `(${unreadCount})` : "";
+                          updateUserColor(partnerName, userElement, unreadCount);
                       });
-                    }
-                  }, ["1", "2", "3"]);
-                } else {
-                  openChat(partnerName);
-                  markMessagesAsSeen(partnerName, userElement);
-                }
-              }
-            };
-            privateChatList.appendChild(userElement);
+                  }
 
-            var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
-            chatRef.on("child_added", function (msgSnapshot) {
-              var data = msgSnapshot.val();
-              if (!data.seen && data.from === partnerName) {
-                userElement.style.color = "red";
-                sendPushNotification(data.message || "Image received", partnerName);
-              }
-            });
+                  var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
+                  chatRef.on("child_added", function (msgSnapshot) {
+                      var data = msgSnapshot.val();
+                      if (!data.seen && data.from === partnerName) {
+                          updateUnreadCount();
+                          sendPushNotification(data.message || "Image received", partnerName);
+                      }
+                  });
 
-            chatRef.on("child_changed", function (msgSnapshot) {
-              var data = msgSnapshot.val();
-              if (data.seen && data.from === partnerName) {
-                var hasUnseenMessages = checkForUnseenMessages(partnerName);
-                if (!hasUnseenMessages) {
-                  updateUserColor(partnerName, userElement);
-                }
-              }
-            });
+                  chatRef.on("child_changed", function (msgSnapshot) {
+                      var data = msgSnapshot.val();
+                      if (data.from === partnerName) {
+                          updateUnreadCount();
+                      }
+                  });
 
-            firebase.database().ref("presence/" + partnerName).on("value", function (snap) {
-              updateUserColor(partnerName, userElement);
-            });
-          }
-        });
+                  firebase.database().ref("presence/" + partnerName).on("value", function (snap) {
+                      updateUnreadCount();
+                  });
+
+                  // Initial count update
+                  updateUnreadCount();
+              }
+          });
       });
     }
 
-    function updateUserColor(partnerName, userElement) {
-      var presenceRef = firebase.database().ref("presence/" + partnerName);
-      presenceRef.once("value", function (snap) {
-        var isOnline = snap.val() && snap.val().online;
-        var hasUnseen = checkForUnseenMessages(partnerName);
-        if (hasUnseen) {
-          userElement.style.color = "red";
-        } else if (isOnline) {
-          userElement.style.color = "green";
-        } else {
-          userElement.style.color = "black";
-        }
-      });
+    function updateUserColor(partnerName, userElement, unreadCount) {
+        var presenceRef = firebase.database().ref("presence/" + partnerName);
+        presenceRef.once("value", function (snap) {
+            var isOnline = snap.val() && snap.val().online;
+            if (unreadCount > 0) {
+                userElement.style.color = "red";
+            } else if (isOnline) {
+                userElement.style.color = "green";
+            } else {
+                userElement.style.color = "black";
+            }
+        });
     }
 
     function markMessagesAsSeen(partnerName, userElement) {
-      var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
-      chatRef.once("value", function (snapshot) {
-        snapshot.forEach(function (msgSnapshot) {
-          var message = msgSnapshot.val();
-          if (message && message.from === partnerName && !message.seen) {
-            var seenTimestamp = Date.now();
-            chatRef.child(msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
-            firebase.database().ref("privateChats/" + partnerName + "/" + username + "/" + msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
-          }
+        var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
+        chatRef.once("value", function (snapshot) {
+            snapshot.forEach(function (msgSnapshot) {
+                var message = msgSnapshot.val();
+                if (message && message.from === partnerName && !message.seen) {
+                    var seenTimestamp = Date.now();
+                    chatRef.child(msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
+                    firebase.database().ref("privateChats/" + partnerName + "/" + username + "/" + msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
+                }
+            });
+            var unreadSpan = userElement.querySelector("span:nth-child(2)");
+            unreadSpan.textContent = "";
+            updateUserColor(partnerName, userElement, 0);
         });
-        updateUserColor(partnerName, userElement);
-      });
     }
 
     function checkForUnseenMessages(partnerName) {
@@ -1015,7 +1039,6 @@ button:hover {
       chatRef = firebase.database().ref("privateChats/" + username + "/" + chatType);
       otherChatRef = firebase.database().ref("privateChats/" + chatType + "/" + username);
 
-      // Check if user is blocked
       isUserBlocked(chatType, username).then(function(blocked) {
         isBlockedByUser = blocked;
         updateChatUI();
@@ -1032,7 +1055,6 @@ button:hover {
           }
         });
 
-        // Listen for block status changes
         firebase.database().ref("blocked/" + chatType + "/" + username).on("value", function(snapshot) {
           isBlockedByUser = snapshot.exists();
           updateChatUI();
