@@ -1,0 +1,106 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>Chit Chat App</title>  
+    <style>  
+        body {  
+            font-family: Arial, sans-serif;  
+            background-color: #f9f9f9;  
+            margin: 0;  
+            padding: 0;  
+            font-size: 14px;  
+        }  
+        .container {  
+            max-width: 220px;  
+            margin: 15px auto;  
+            padding: 10px;  
+            background-color: #ffffff;  
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);  
+            border-radius: 5px;  
+        }  
+        h1 {  
+            text-align: center;  
+            color: #333;  
+            font-size: 16px;  
+            margin-bottom: 5px;  
+        }  
+        h2 {  
+            font-size: 14px;  
+            text-align: center;  
+            color: #555;  
+            margin-bottom: 10px;  
+        }  
+        ul {  
+            list-style-type: square;  
+            padding-left: 15px;  
+            color: #444;  
+        }  
+        li {  
+            margin-bottom: 6px;  
+        }  
+        .red {  
+            color: red;  
+            font-weight: bold;  
+        }  
+        .black {  
+            color: black;  
+            font-weight: bold;  
+        }  
+        .green {  
+            color: green;  
+            font-weight: bold;  
+        }  
+        .highlight {  
+            color: #007bff;  
+            font-weight: bold;  
+        }  
+        p {  
+            text-align: center;  
+            font-size: 12px;  
+            color: #777;  
+            margin-top: 10px;  
+        }  
+    </style>  
+    <script>
+
+    document.addEventListener("keydown", function(event) {  
+        if (event.key === "Enter") {  
+            window.location.href = "main.html";  
+        }  
+    });
+    document.addEventListener("click", function() {  
+        window.location.href = "main.html";  
+    });
+</script>
+</head>  
+<body>  
+    <div class="container">  
+        <h1>Chit Chat</h1>  
+        <h2>How to Use (v1.0.51)</h2>  
+        <ul>  
+            <li><span class="highlight">Blocking Users:</span> You can now block other users.</li>  
+            <li><span class="highlight">Unblocking Users:</span> Search the user's name in the search bar to unblock them.</li>  
+            <li><span class="highlight">Chat Background:</span> You can now change the chat background.</li>  
+            <li><span class="highlight">Themes:</span> Customize your app with different themes.</li>  
+            <li><span class="highlight">Focus Mode:</span> Press the "5" key to focus on messages.</li>  
+            <li><span class="highlight">Message Seen:</span> When a message is seen, it turns <span class="green">green</span>.</li>  
+            <li><span class="highlight">Online Status:</span> If a username is green, the user is online.</li>  
+            <li><span class="highlight">Notifications:</span> Get alerts for new messages.</li>  
+            <li><span class="highlight">Private Chat Deletion:</span> Delete private chats easily.</li>  
+            <li><span class="highlight">Image Deletion:</span> Remove sent images.</li>  
+            <li><span class="highlight">Emoji Reactions:</span> React to messages with emojis.</li>  
+            <li><span class="highlight">Private Chat Images:</span> Send images in private chat.</li>  
+            <li><span class="highlight">Groups:</span> Create groups and chat together.</li>  
+            <li><span class="highlight">More Bug Fixes & Stability Improvements.</span></li>  
+            <li><span class="highlight">World Chat:</span> Chat with everyone in real-time.</li>  
+            <li><span class="highlight">Private Chat:</span> Find and chat with specific users.</li>  
+            <li>If a username is <span class="red">red</span>, it means they sent you an unread message.</li>  
+            <li>If a username is <span class="black">black</span>, it means there are no new messages.</li>  
+            <li>If a username is <span class="green">green</span>, the user is online.</li>  
+        </ul>  
+        <p>Stay connected anytime, anywhere! <br> Need help? <span class="highlight">Reach us at kaiosappsuggestions@gmail.com</span>.</p>  
+    </div>  
+</body>  
+</html>
