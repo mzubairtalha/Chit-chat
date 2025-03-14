@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chit Chat</title>
+  <title>Chat Max V05</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="kaiads.v5.min.js"></script> 
@@ -180,9 +180,11 @@ button:hover {
 
 .sent-container {  
   align-self: flex-end;  
+margin-left: auto; /* Pushes to the right */
 }  
 
 .received-container {  
+margin-right: auto; /* Pushes to the left */
   align-self: flex-start;  
 }  
 
@@ -232,15 +234,16 @@ button:hover {
   gap: 8px;  
 }  
 
-#imageButton {  
-  width: 32px;  
-  height: 32px;  
-  background-image: url('left-pic.png');  
-  background-size: cover;  
-  background-position: center;  
-  border: none;  
-  cursor: pointer;  
-}  
+#imageButton {
+      width: 32px;
+      height: 32px;
+      background-image: url('https://cdn-icons-png.freepik.com/256/10389/10389182.png');
+      background-size: cover;
+      background-position: center;
+      border: none;
+      cursor: pointer;
+    }
+
 
 #imageButton:focus {  
   border: 2px solid #007bff;  
@@ -256,27 +259,24 @@ button:hover {
   color: #333;  
 }  
 
-#sendButton {  
-  width: 32px;  
-  height: 32px;  
-  background-image: url('right-pic.png');  
-  background-size: cover;  
-  background-position: center;  
-  border: none;  
-  cursor: pointer;  
-  margin: 0;  
-  align-self: center;  
-}  
+#sendButton {
+      width: 32px;
+      height: 32px;
+      background-image: url('https://cdn-icons-png.freepik.com/256/8026/8026329.png');
+      background-size: cover;
+      background-position: center;
+      border: none;
+      cursor: pointer;
+      margin: 0;
+      align-self: center;
+    }
 
 #sendButton:focus {  
   border: 2px solid #007bff;  
 }  
 
-#softKeysContainer {  
-  height: 1.1rem;  
-  line-height: 1.1rem;  
-  width: 100%;  
-  background: linear-gradient(45deg, #ff6f61, #ff9a8b);  
+#softKeysContainer {   
+  width: 100%;    
   position: fixed;  
   bottom: 0;  
   display: none;  
@@ -289,14 +289,11 @@ button:hover {
 #softkey-left,  
 #softkey-center,  
 #softkey-right {  
-  text-align: right;  
-  font-size: 15px;  
-  color: #ffffff;  
 }  
 
 .message img {  
   max-width: 100%;  
-  height: 120px;  
+  height: 100%;  
   border-radius: 6px;  
   margin-top: 4px;  
 }  
@@ -311,8 +308,8 @@ button:hover {
   top: 50%;  
   left: 50%;  
   transform: translate(-50%, -50%);  
-  width: 240px;  
-  height: 320px;  
+  width: 100%;  
+  height: 100%;  
   object-fit: fill;  
   background-color: black;  
   z-index: 9999;  
@@ -473,7 +470,7 @@ button:hover {
   </div>
 
   <div id="mainPage">
-    <header>Private Chat</header>
+    
     <input type="text" id="searchInput" class="navItem" placeholder="Search for a user" tabindex="1" />
     <button id="searchButton" class="navItem" tabindex="2">Search</button>
     <button id="worldChatButton" class="navItem" tabindex="3" onclick="navigateTo('world_chat.html')">World Chat</button>
@@ -481,12 +478,12 @@ button:hover {
     <button id="changeBackgroundButton" class="navItem" tabindex="5">Change Chat Background</button>
     <button id="changeThemeButton" class="navItem" tabindex="6">Change Theme</button>
     <div id="privateChatList">
-      <h4>Your Private Chats:</h4>
+      <h4>↓ Private Chats ↓ </h4>
     </div>
   </div>
 
   <div id="chatPage">
-    <header id="chatHeader">Chat</header>
+    <header id="chatHeader"></header>
     <div id="chatBox">
       <div class="empty-message"></div>
     </div>
@@ -499,7 +496,7 @@ button:hover {
   <div id="softKeysContainer">
     <div id="softkey-left"></div>
     <div id="softkey-center"></div>
-    <div id="softkey-right">Back</div>
+    <div id="softkey-right"></div>
   </div>
 
   <script>
@@ -715,9 +712,9 @@ button:hover {
 
     function showKaiAd() {
       getKaiAd({
-        publisher: 'da08737d-861e-4ebe-bbbb-8fb90d004d39',
-        app: 'Chit_Chat',
-        slot: 'Chit_Chat__slot',
+        publisher: '58d21092-87f8-47c3-883d-fcd67eb318d8',
+        app: '10',
+        slot: '10',
         onerror: function(err) { console.error('Custom catch:', err); },
         onready: function(ad) {
           var previouslyFocusedElement = document.activeElement;
@@ -827,7 +824,7 @@ button:hover {
     }
 
     function loadPrivateChats() {
-      privateChatList.innerHTML = "<h4>Your Private Chats:</h4>";
+      privateChatList.innerHTML = "<h4> ↓ Private Chats ↓ </h4>";
       firebase.database().ref("privateChats/" + username).on("child_added", function (snapshot) {
           var partnerName = snapshot.key;
           isUserBlocked(username, partnerName).then(function (blocked) {
