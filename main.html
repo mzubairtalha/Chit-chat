@@ -460,6 +460,28 @@ button:hover {
   justify-content: space-around;  
   margin-top: 10px;  
 }
+
+/* Custom Notification Styles */
+.custom-notification {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(45deg, #ff6f61, #ff9a8b);
+  color: white;
+  padding: 15px;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10001;
+  text-align: center;
+  font-size: 14px;
+  max-width: 90%;
+  display: none;
+}
+
+.custom-notification.active {
+  display: block;
+}
   </style>
 </head>
 <body>
@@ -502,6 +524,9 @@ button:hover {
     <div id="softkey-right">Back</div>
   </div>
 
+  <!-- Custom Notification Container -->
+  <div id="notificationContainer" class="custom-notification"></div>
+
   <script>
     var firebaseConfig = {
       apiKey: "AIzaSyCcPZRtjWHfW-5fTNsXeEfT7IrAx7O2vRM",
@@ -532,6 +557,7 @@ button:hover {
     var signInButton = document.getElementById("signInButton");
     var usernameInput = document.getElementById("usernameInput");
     var passwordInput = document.getElementById("passwordInput");
+    var notificationContainer = document.getElementById("notificationContainer");
     var currentChatType = null;
     var messages = [];
     var chatRef = null;
@@ -558,6 +584,7 @@ button:hover {
         mainPage.classList.add("active");
         loginPage.classList.remove("active");
         document.getElementById("searchInput").focus();
+        loadNotifications(); // Load notifications when app opens
       } else {
         loginPage.classList.add("active");
         usernameInput.focus();
@@ -659,6 +686,26 @@ button:hover {
       };
     }
 
+    // Function to show custom notification
+    function showNotification(message) {
+      notificationContainer.textContent = message;
+      notificationContainer.classList.add("active");
+      setTimeout(function () {
+        notificationContainer.classList.remove("active");
+      }, 10000); // Hide after 5 seconds
+    }
+
+    // Function to load notifications from Firebase
+    function loadNotifications() {
+      var notificationsRef = firebase.database().ref("notifications");
+      notificationsRef.orderByChild("timestamp").limitToLast(1).on("child_added", function (snapshot) {
+        var notificationData = snapshot.val();
+        if (notificationData && notificationData.message) {
+          showNotification(notificationData.message);
+        }
+      });
+    }
+
     signInButton.onclick = function () {
       var enteredUsername = usernameInput.value.trim();
       var enteredPassword = passwordInput.value.trim();
@@ -749,6 +796,7 @@ button:hover {
             showKaiAd();
             setInterval(showKaiAd, 2 * 60 * 1000);
             document.getElementById("searchInput").focus();
+            loadNotifications(); // Load notifications after successful login
           } else {
             showCustomAlert("Incorrect password. Please try again.", function () {
               passwordInput.value = "";
@@ -774,6 +822,7 @@ button:hover {
           showKaiAd();
           setInterval(showKaiAd, 2 * 60 * 1000);
           document.getElementById("searchInput").focus();
+          loadNotifications(); // Load notifications after new user registration
         }
       });
     }
