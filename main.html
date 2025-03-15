@@ -9,9 +9,9 @@
   <script src="kaiads.v5.min.js"></script> 
   <style>
 * {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {  
@@ -289,9 +289,18 @@ button:hover {
 #softkey-left,  
 #softkey-center,  
 #softkey-right {  
-  text-align: right;  
   font-size: 15px;  
   color: #ffffff;  
+}  
+
+#softkey-left {  
+  float: left;  
+  margin-left: 10px;  
+}  
+
+#softkey-right {  
+  float: right;  
+  margin-right: 10px;  
 }  
 
 .message img {  
@@ -304,18 +313,6 @@ button:hover {
 .message:focus {  
   outline: none;  
   box-shadow: 0 0 10px 2px rgba(0, 123, 255, 0.7);  
-}  
-
-.fullscreen-image {  
-  position: fixed;  
-  top: 50%;  
-  left: 50%;  
-  transform: translate(-50%, -50%);  
-  width: 240px;  
-  height: 320px;  
-  object-fit: fill;  
-  background-color: black;  
-  z-index: 9999;  
 }  
 
 .emoji-container {  
@@ -404,6 +401,34 @@ button:hover {
   margin: 10px 0;
 }
 
+/* Dropdown Menu Styles */
+.dropdown-menu {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 10px;
+  background: linear-gradient(45deg, #ff6f61, #ff9a8b);
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.dropdown-item {
+  padding: 4px 8px;
+  font-size: 12px;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.dropdown-item:focus {
+  background: rgba(255, 255, 255, 0.3);
+  outline: 2px solid #007bff;
+}
+
 /* Themes */  
 .rainbow-theme { background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #8000ff); color: #333; }  
 .skyway-theme { background: linear-gradient(180deg, #87CEEB, #E0F7FA); color: #333; }  
@@ -466,7 +491,6 @@ button:hover {
   position: fixed;
   top: 10%;
   left: 0%;
-  
   background: linear-gradient(45deg, #ff6f61, #ff9a8b);
   color: white;
   padding: 10px;
@@ -519,13 +543,16 @@ button:hover {
     </div>
   </div>
   <div id="softKeysContainer">
-    <div id="softkey-left"></div>
+    <div id="softkey-left">Options</div>
     <div id="softkey-center"></div>
     <div id="softkey-right">Back</div>
   </div>
 
   <!-- Custom Notification Container -->
   <div id="notificationContainer" class="custom-notification"></div>
+
+  <!-- Dropdown Menu Container -->
+  <div id="dropdownMenu" class="dropdown-menu"></div>
 
   <script>
     var firebaseConfig = {
@@ -558,6 +585,7 @@ button:hover {
     var usernameInput = document.getElementById("usernameInput");
     var passwordInput = document.getElementById("passwordInput");
     var notificationContainer = document.getElementById("notificationContainer");
+    var dropdownMenu = document.getElementById("dropdownMenu");
     var currentChatType = null;
     var messages = [];
     var chatRef = null;
@@ -569,6 +597,8 @@ button:hover {
     var shownAlerts = new Set();
     var isAlertActive = false;
     var isBlockedByUser = false;
+    var isDropdownVisible = false;
+    var lastFocusedElement = null;
 
     document.addEventListener("DOMContentLoaded", function () {
       var savedBackground = localStorage.getItem("chatBackground");
@@ -583,8 +613,9 @@ button:hover {
         authenticateUser(username, password);
         mainPage.classList.add("active");
         loginPage.classList.remove("active");
+        softKeysContainer.style.display = "block";
         document.getElementById("searchInput").focus();
-        loadNotifications(); // Load notifications when app opens
+        loadNotifications();
       } else {
         loginPage.classList.add("active");
         usernameInput.focus();
@@ -686,16 +717,14 @@ button:hover {
       };
     }
 
-    // Function to show custom notification
     function showNotification(message) {
       notificationContainer.textContent = message;
       notificationContainer.classList.add("active");
       setTimeout(function () {
         notificationContainer.classList.remove("active");
-      }, 10000); // Hide after 5 seconds
+      }, 10000);
     }
 
-    // Function to load notifications from Firebase
     function loadNotifications() {
       var notificationsRef = firebase.database().ref("notifications");
       notificationsRef.orderByChild("timestamp").limitToLast(1).on("child_added", function (snapshot) {
@@ -769,10 +798,10 @@ button:hover {
         onready: function(ad) {
           var previouslyFocusedElement = document.activeElement;
           ad.call('display');
-          ad.on('display', function() { softKeysContainer.style.display = chatPage.classList.contains("active") ? "block" : "none"; });
+          ad.on('display', function() { softKeysContainer.style.display = (chatPage.classList.contains("active") || mainPage.classList.contains("active")) ? "block" : "none"; });
           ad.on('close', function() {
             if (previouslyFocusedElement) previouslyFocusedElement.focus();
-            softKeysContainer.style.display = chatPage.classList.contains("active") ? "block" : "none";
+            softKeysContainer.style.display = (chatPage.classList.contains("active") || mainPage.classList.contains("active")) ? "block" : "none";
           });
         }
       });
@@ -789,14 +818,14 @@ button:hover {
             localStorage.setItem("password", password);
             loginPage.classList.remove("active");
             mainPage.classList.add("active");
-            softKeysContainer.style.display = "none";
+            softKeysContainer.style.display = "block";
             loadPrivateChats();
             setupPresence();
             registerPushNotifications();
             showKaiAd();
             setInterval(showKaiAd, 2 * 60 * 1000);
             document.getElementById("searchInput").focus();
-            loadNotifications(); // Load notifications after successful login
+            loadNotifications();
           } else {
             showCustomAlert("Incorrect password. Please try again.", function () {
               passwordInput.value = "";
@@ -815,14 +844,14 @@ button:hover {
           localStorage.setItem("password", password);
           loginPage.classList.remove("active");
           mainPage.classList.add("active");
-          softKeysContainer.style.display = "none";
+          softKeysContainer.style.display = "block";
           loadPrivateChats();
           setupPresence();
           registerPushNotifications();
           showKaiAd();
           setInterval(showKaiAd, 2 * 60 * 1000);
           document.getElementById("searchInput").focus();
-          loadNotifications(); // Load notifications after new user registration
+          loadNotifications();
         }
       });
     }
@@ -878,139 +907,105 @@ button:hover {
     function loadPrivateChats() {
       privateChatList.innerHTML = "<h4>Your Private Chats:</h4>";
       firebase.database().ref("privateChats/" + username).on("child_added", function (snapshot) {
-          var partnerName = snapshot.key;
-          isUserBlocked(username, partnerName).then(function (blocked) {
-              if (!blocked) {
-                  var userElement = document.createElement("div");
-                  userElement.className = "user navItem";
-                  var nameSpan = document.createElement("span");
-                  nameSpan.textContent = partnerName;
-                  var unreadSpan = document.createElement("span");
-                  unreadSpan.style.marginLeft = "5px";
-                  unreadSpan.style.color = "red";
-                  unreadSpan.style.fontWeight = "bold";
-                  userElement.appendChild(nameSpan);
-                  userElement.appendChild(unreadSpan);
-                  userElement.tabIndex = 7;
+        var partnerName = snapshot.key;
+        isUserBlocked(username, partnerName).then(function (blocked) {
+          if (!blocked) {
+            var userElement = document.createElement("div");
+            userElement.className = "user navItem";
+            var nameSpan = document.createElement("span");
+            nameSpan.textContent = partnerName;
+            var unreadSpan = document.createElement("span");
+            unreadSpan.style.marginLeft = "5px";
+            unreadSpan.style.color = "red";
+            unreadSpan.style.fontWeight = "bold";
+            userElement.appendChild(nameSpan);
+            userElement.appendChild(unreadSpan);
+            userElement.tabIndex = 7;
 
-                  userElement.onclick = function () {
-                      openChat(partnerName);
-                      markMessagesAsSeen(partnerName, userElement);
-                  };
+            userElement.onclick = function () {
+              openChat(partnerName);
+              markMessagesAsSeen(partnerName, userElement);
+            };
 
-                  userElement.onkeydown = function (e) {
-                      if (e.key === "Enter") {
-                          if (!shownAlerts.has(partnerName)) {
-                              showCustomPrompt("Select an option for " + partnerName + ":\nOptions:\n1. Chat\n2. Delete\n3. Block", function (choice) {
-                                  shownAlerts.add(partnerName);
-                                  if (choice === "1") {
-                                      openChat(partnerName);
-                                      markMessagesAsSeen(partnerName, userElement);
-                                  } else if (choice === "2") {
-                                      firebase.database().ref("privateChats/" + username + "/" + partnerName).remove();
-                                      userElement.remove();
-                                  } else if (choice === "3") {
-                                      blockUser(username, partnerName);
-                                      userElement.remove();
-                                      showCustomAlert(partnerName + " has been blocked and chat history deleted.", function () {
-                                          document.getElementById("searchInput").focus();
-                                      });
-                                  }
-                              }, ["1", "2", "3"]);
-                          } else {
-                              openChat(partnerName);
-                              markMessagesAsSeen(partnerName, userElement);
-                          }
-                      }
-                  };
-                  privateChatList.appendChild(userElement);
-
-                  // Update unread count
-                  function updateUnreadCount() {
-                      var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
-                      chatRef.once("value", function (chatSnapshot) {
-                          var unreadCount = 0;
-                          chatSnapshot.forEach(function (msgSnapshot) {
-                              var data = msgSnapshot.val();
-                              if (data.from === partnerName && !data.seen) {
-                                  unreadCount++;
-                              }
-                          });
-                          unreadSpan.textContent = unreadCount > 0 ? `(${unreadCount})` : "";
-                          updateUserColor(partnerName, userElement, unreadCount);
-                      });
-                  }
-
-                  var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
-                  chatRef.on("child_added", function (msgSnapshot) {
-                      var data = msgSnapshot.val();
-                      if (!data.seen && data.from === partnerName) {
-                          updateUnreadCount();
-                          sendPushNotification(data.message || "Image received", partnerName);
-                      }
-                  });
-
-                  chatRef.on("child_changed", function (msgSnapshot) {
-                      var data = msgSnapshot.val();
-                      if (data.from === partnerName) {
-                          updateUnreadCount();
-                      }
-                  });
-
-                  firebase.database().ref("presence/" + partnerName).on("value", function (snap) {
-                      updateUnreadCount();
-                  });
-
-                  // Initial count update
-                  updateUnreadCount();
+            userElement.onkeydown = function (e) {
+              if (e.key === "Enter") {
+                openChat(partnerName);
+                markMessagesAsSeen(partnerName, userElement);
               }
-          });
+            };
+
+            privateChatList.appendChild(userElement);
+
+            function updateUnreadCount() {
+              var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
+              chatRef.once("value", function (chatSnapshot) {
+                var unreadCount = 0;
+                chatSnapshot.forEach(function (msgSnapshot) {
+                  var data = msgSnapshot.val();
+                  if (data.from === partnerName && !data.seen) {
+                    unreadCount++;
+                  }
+                });
+                unreadSpan.textContent = unreadCount > 0 ? "(" + unreadCount + ")" : "";
+                updateUserColor(partnerName, userElement, unreadCount);
+              });
+            }
+
+            var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
+            chatRef.on("child_added", function (msgSnapshot) {
+              var data = msgSnapshot.val();
+              if (!data.seen && data.from === partnerName) {
+                updateUnreadCount();
+                sendPushNotification(data.message || "Image received", partnerName);
+              }
+            });
+
+            chatRef.on("child_changed", function (msgSnapshot) {
+              var data = msgSnapshot.val();
+              if (data.from === partnerName) {
+                updateUnreadCount();
+              }
+            });
+
+            firebase.database().ref("presence/" + partnerName).on("value", function (snap) {
+              updateUnreadCount();
+            });
+
+            updateUnreadCount();
+          }
+        });
       });
     }
 
     function updateUserColor(partnerName, userElement, unreadCount) {
-        var presenceRef = firebase.database().ref("presence/" + partnerName);
-        presenceRef.once("value", function (snap) {
-            var isOnline = snap.val() && snap.val().online;
-            if (unreadCount > 0) {
-                userElement.style.color = "red";
-            } else if (isOnline) {
-                userElement.style.color = "green";
-            } else {
-                userElement.style.color = "black";
-            }
-        });
+      var presenceRef = firebase.database().ref("presence/" + partnerName);
+      presenceRef.once("value", function (snap) {
+        var isOnline = snap.val() && snap.val().online;
+        if (unreadCount > 0) {
+          userElement.style.color = "red";
+        } else if (isOnline) {
+          userElement.style.color = "green";
+        } else {
+          userElement.style.color = "black";
+        }
+      });
     }
 
     function markMessagesAsSeen(partnerName, userElement) {
-        var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
-        chatRef.once("value", function (snapshot) {
-            snapshot.forEach(function (msgSnapshot) {
-                var message = msgSnapshot.val();
-                if (message && message.from === partnerName && !message.seen) {
-                    var seenTimestamp = Date.now();
-                    chatRef.child(msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
-                    firebase.database().ref("privateChats/" + partnerName + "/" + username + "/" + msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
-                }
-            });
-            var unreadSpan = userElement.querySelector("span:nth-child(2)");
-            unreadSpan.textContent = "";
-            updateUserColor(partnerName, userElement, 0);
-        });
-    }
-
-    function checkForUnseenMessages(partnerName) {
-      var hasUnseen = false;
       var chatRef = firebase.database().ref("privateChats/" + username + "/" + partnerName);
       chatRef.once("value", function (snapshot) {
         snapshot.forEach(function (msgSnapshot) {
           var message = msgSnapshot.val();
-          if (message && !message.seen && message.from === partnerName) {
-            hasUnseen = true;
+          if (message && message.from === partnerName && !message.seen) {
+            var seenTimestamp = Date.now();
+            chatRef.child(msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
+            firebase.database().ref("privateChats/" + partnerName + "/" + username + "/" + msgSnapshot.key).update({ seen: true, seenTimestamp: seenTimestamp });
           }
         });
+        var unreadSpan = userElement.querySelector("span:nth-child(2)");
+        unreadSpan.textContent = "";
+        updateUserColor(partnerName, userElement, 0);
       });
-      return hasUnseen;
     }
 
     function checkBothSeen(messageId) {
@@ -1338,10 +1333,24 @@ button:hover {
     }
 
     function toggleFullScreen(img) {
-      if (img.classList.contains("fullscreen-image")) {
-        img.classList.remove("fullscreen-image");
+      if (img.style.position === "fixed") {
+        img.style.position = "";
+        img.style.top = "";
+        img.style.left = "";
+        img.style.transform = "";
+        img.style.width = "";
+        img.style.height = "";
+        img.style.zIndex = "";
+        img.style.backgroundColor = "";
       } else {
-        img.classList.add("fullscreen-image");
+        img.style.position = "fixed";
+        img.style.top = "50%";
+        img.style.left = "50%";
+        img.style.transform = "translate(-50%, -50%)";
+        img.style.width = "240px";
+        img.style.height = "320px";
+        img.style.zIndex = "9999";
+        img.style.backgroundColor = "black";
       }
     }
 
@@ -1544,8 +1553,37 @@ button:hover {
       });
     }
 
+    function showDropdown(options, callback) {
+      hideDropdown();
+      lastFocusedElement = document.activeElement;
+      dropdownMenu.innerHTML = "";
+      for (var i = 0; i < options.length; i++) {
+        var item = document.createElement("div");
+        item.className = "dropdown-item";
+        item.textContent = options[i];
+        item.tabIndex = 14 + i;
+        item.onclick = function (index) {
+          return function () {
+            callback(index);
+            hideDropdown();
+          };
+        }(i);
+        dropdownMenu.appendChild(item);
+      }
+      dropdownMenu.style.display = "block";
+      isDropdownVisible = true;
+      dropdownMenu.children[0].focus();
+    }
+
+    function hideDropdown() {
+      dropdownMenu.style.display = "none";
+      isDropdownVisible = false;
+      dropdownMenu.innerHTML = "";
+      if (lastFocusedElement) lastFocusedElement.focus();
+    }
+
     function navigate(offset) {
-      var elements = Array.from(document.querySelectorAll(".navItem, .message, .emoji, .action-button"));
+      var elements = Array.from(document.querySelectorAll(".navItem, .message, .emoji, .action-button, .dropdown-item"));
       var index = elements.indexOf(document.activeElement);
       var target = elements[index + offset];
       if (target) target.focus();
@@ -1571,93 +1609,103 @@ button:hover {
         return;
       }
 
-      var fullscreenImage = document.querySelector(".fullscreen-image");
-      if (fullscreenImage) {
-        fullscreenImage.classList.remove("fullscreen-image");
-        var messageContainer = fullscreenImage.closest(".message-container");
-        var fullscreenButton = messageContainer.querySelector(".action-button[textContent='Fullscreen']");
-        if (fullscreenButton) fullscreenButton.focus();
+      var activeElement = document.activeElement;
+      if (isDropdownVisible) {
+        if (e.key === "ArrowUp") {
+          var items = Array.from(dropdownMenu.children);
+          var index = items.indexOf(activeElement);
+          if (index > 0) items[index - 1].focus();
+        } else if (e.key === "ArrowDown") {
+          var items = Array.from(dropdownMenu.children);
+          var index = items.indexOf(activeElement);
+          if (index < items.length - 1) items[index + 1].focus();
+        } else if (e.key === "Enter") {
+          activeElement.click();
+        } else if (e.key === "SoftLeft") {
+          hideDropdown();
+        }
         return;
       }
 
-      if (currentEmojiContainer || currentActionContainer) {
-        var activeElement = document.activeElement;
-        if (e.key === "ArrowLeft") {
-          if (activeElement.className === "emoji") {
-            var emojis = Array.from(currentEmojiContainer.children);
-            var index = emojis.indexOf(activeElement);
-            if (index > 0) {
-              emojis[index - 1].focus();
-            } else {
-              emojis[emojis.length - 1].focus();
-            }
-          } else if (activeElement.className.indexOf("action-button") !== -1) {
-            var actions = Array.from(currentActionContainer.children);
-            var index = actions.indexOf(activeElement);
-            if (index > 0) {
-              actions[index - 1].focus();
-            } else {
-              currentEmojiContainer.children[0].focus();
-            }
-          }
-        } else if (e.key === "ArrowRight") {
-          if (activeElement.className === "emoji") {
-            var emojis = Array.from(currentEmojiContainer.children);
-            var index = emojis.indexOf(activeElement);
-            if (index < emojis.length - 1) {
-              emojis[index + 1].focus();
-            } else if (currentActionContainer) {
-              currentActionContainer.children[0].focus();
-            } else {
-              emojis[0].focus();
-            }
-          } else if (activeElement.className.indexOf("action-button") !== -1) {
-            var actions = Array.from(currentActionContainer.children);
-            var index = actions.indexOf(activeElement);
-            if (index < actions.length - 1) {
-              actions[index + 1].focus();
-            } else {
-              currentEmojiContainer.children[0].focus();
-            }
-          }
+      if (activeElement.tagName === "IMG" && activeElement.style.position === "fixed") {
+        if (e.key === "Enter" || e.key === "SoftRight") {
+          toggleFullScreen(activeElement);
+          var messageContainer = activeElement.parentElement.parentElement;
+          messageContainer.querySelector(".message").focus();
         }
+        return;
       }
 
-      if (e.key === "ArrowDown") {
-        var messagesList = Array.from(document.querySelectorAll(".message"));
-        var index = messagesList.indexOf(document.activeElement);
-        if (index !== -1 && index < messagesList.length - 1) {
-          messagesList[index + 1].focus();
-        } else {
-          navigate(1);
+      if (e.key === "SoftLeft") {
+        if (isDropdownVisible) {
+          hideDropdown();
+          return;
         }
-      }
 
-      if (e.key === "ArrowUp") {
-        var messagesList = Array.from(document.querySelectorAll(".message"));
-        var index = messagesList.indexOf(document.activeElement);
-        if (index > 0) {
-          messagesList[index - 1].focus();
-        } else {
-          navigate(-1);
+        if (mainPage.classList.contains("active") && activeElement.className === "user navItem") {
+          var partnerName = activeElement.querySelector("span").textContent;
+          showDropdown(["Block", "Delete"], function (index) {
+            if (index === 0) {
+              blockUser(username, partnerName);
+              activeElement.remove();
+              showCustomAlert(partnerName + " has been blocked and chat history deleted.", function () {
+                document.getElementById("searchInput").focus();
+              });
+            } else if (index === 1) {
+              firebase.database().ref("privateChats/" + username + "/" + partnerName).remove();
+              activeElement.remove();
+            }
+          });
+        } else if (chatPage.classList.contains("active") && activeElement.className.indexOf("message") !== -1) {
+          var messageContainer = activeElement.parentElement;
+          var messageId = activeElement.id.replace("msg-", "");
+          var options = ["Delete for Me"];
+          if (messageContainer.querySelector(".sent")) {
+            options.push("Delete for Everyone");
+          }
+          if (messageContainer.querySelector("img")) {
+            options.push("Fullscreen");
+          }
+          showDropdown(options, function (index) {
+            var messagesList = Array.from(document.querySelectorAll(".message-container"));
+            var currentIndex = messagesList.indexOf(messageContainer);
+            var nextMessage = (currentIndex < messagesList.length - 1) ? messagesList[currentIndex + 1].querySelector(".message") : null;
+            var prevMessage = (currentIndex > 0) ? messagesList[currentIndex - 1].querySelector(".message") : null;
+
+            if (options[index] === "Delete for Me") {
+              deleteMessageForMe(messageId);
+              messageContainer.remove();
+              if (nextMessage) nextMessage.focus();
+              else if (prevMessage) prevMessage.focus();
+              else document.getElementById("messageInput").focus();
+            } else if (options[index] === "Delete for Everyone") {
+              deleteMessageForEveryone(messageId);
+              if (nextMessage) nextMessage.focus();
+              else if (prevMessage) prevMessage.focus();
+              else document.getElementById("messageInput").focus();
+            } else if (options[index] === "Fullscreen") {
+              var img = messageContainer.querySelector("img");
+              if (img) toggleFullScreen(img);
+            }
+          });
         }
       }
 
       if (e.key === "Enter") {
-        var activeElement = document.activeElement;
         if (activeElement.className === "emoji") {
-          var messageContainer = activeElement.closest(".message-container");
+          var messageContainer = activeElement.parentElement.parentElement;
           var messageId = messageContainer.querySelector(".message").id.replace("msg-", "");
           addReaction(messageId, activeElement.textContent);
           hideEmojiContainer();
           hideActionContainer();
           messageContainer.querySelector(".message").focus();
         } else if (activeElement.className.indexOf("action-button") !== -1) {
-          var messageContainer = activeElement.closest(".message-container");
+          var messageContainer = activeElement.parentElement.parentElement;
           var messageId = messageContainer.querySelector(".message").id.replace("msg-", "");
           var messagesList = Array.from(document.querySelectorAll(".message-container"));
           var currentIndex = messagesList.indexOf(messageContainer);
           var nextMessage = (currentIndex < messagesList.length - 1) ? messagesList[currentIndex + 1].querySelector(".message") : null;
+          var prevMessage = (currentIndex > 0) ? messagesList[currentIndex - 1].querySelector(".message") : null;
 
           if (activeElement.textContent === "Delete for Me") {
             deleteMessageForMe(messageId);
@@ -1665,14 +1713,14 @@ button:hover {
             hideEmojiContainer();
             hideActionContainer();
             if (nextMessage) nextMessage.focus();
-            else if (currentIndex > 0) messagesList[currentIndex - 1].querySelector(".message").focus();
+            else if (prevMessage) prevMessage.focus();
             else document.getElementById("messageInput").focus();
           } else if (activeElement.textContent === "Delete for Everyone") {
             deleteMessageForEveryone(messageId);
             hideEmojiContainer();
             hideActionContainer();
             if (nextMessage) nextMessage.focus();
-            else if (currentIndex > 0) messagesList[currentIndex - 1].querySelector(".message").focus();
+            else if (prevMessage) prevMessage.focus();
             else document.getElementById("messageInput").focus();
           } else if (activeElement.textContent === "Fullscreen") {
             var img = messageContainer.querySelector("img");
@@ -1682,16 +1730,39 @@ button:hover {
           }
         } else if (activeElement.className.indexOf("message") !== -1) {
           var messageContainer = activeElement.parentElement;
-          showEmojiContainer(messageContainer);
-          showActionContainer(messageContainer);
+          if (messageContainer.querySelector("img")) {
+            toggleFullScreen(messageContainer.querySelector("img"));
+          } else {
+            showEmojiContainer(messageContainer);
+          }
         }
       }
 
-      if (e.key === "SoftRight" || e.key === "SoftLeft") {
+      if (e.key === "ArrowDown") {
+        var messagesList = Array.from(document.querySelectorAll(".message"));
+        var index = messagesList.indexOf(activeElement);
+        if (index !== -1 && index < messagesList.length - 1) {
+          messagesList[index + 1].focus();
+        } else {
+          navigate(1);
+        }
+      }
+
+      if (e.key === "ArrowUp") {
+        var messagesList = Array.from(document.querySelectorAll(".message"));
+        var index = messagesList.indexOf(activeElement);
+        if (index > 0) {
+          messagesList[index - 1].focus();
+        } else {
+          navigate(-1);
+        }
+      }
+
+      if (e.key === "SoftRight") {
         if (chatPage.classList.contains("active")) {
           chatPage.classList.remove("active");
           mainPage.classList.add("active");
-          softKeysContainer.style.display = "none";
+          softKeysContainer.style.display = "block";
           document.getElementById("searchInput").focus();
           if (chatRef) chatRef.off();
           if (otherChatRef) otherChatRef.off();
