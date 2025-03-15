@@ -401,6 +401,15 @@ button:hover {
   margin: 10px 0;
 }
 
+.typing-indicator {
+  font-size: 10px;
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+  margin: 5px 0;
+}
+
 /* Dropdown Menu Styles */
 .dropdown-menu {
   display: none;
@@ -543,7 +552,7 @@ button:hover {
     </div>
   </div>
   <div id="softKeysContainer">
-    <div id="softkey-left">Options</div>
+    <div id="softkey-left"></div>
     <div id="softkey-center"></div>
     <div id="softkey-right">Back</div>
   </div>
@@ -581,6 +590,8 @@ button:hover {
     var changeBackgroundButton = document.getElementById("changeBackgroundButton");
     var changeThemeButton = document.getElementById("changeThemeButton");
     var softKeysContainer = document.getElementById("softKeysContainer");
+    var softkeyLeft = document.getElementById("softkey-left");
+    var softkeyRight = document.getElementById("softkey-right");
     var signInButton = document.getElementById("signInButton");
     var usernameInput = document.getElementById("usernameInput");
     var passwordInput = document.getElementById("passwordInput");
@@ -599,6 +610,8 @@ button:hover {
     var isBlockedByUser = false;
     var isDropdownVisible = false;
     var lastFocusedElement = null;
+    var typingTimeout = null;
+    var currentOpenChat = null;  // Track currently open chat for typing indicator
 
     document.addEventListener("DOMContentLoaded", function () {
       var savedBackground = localStorage.getItem("chatBackground");
@@ -614,10 +627,14 @@ button:hover {
         mainPage.classList.add("active");
         loginPage.classList.remove("active");
         softKeysContainer.style.display = "block";
+        softkeyLeft.innerHTML = "";
+        softkeyRight.innerHTML = "Back";
         document.getElementById("searchInput").focus();
         loadNotifications();
       } else {
         loginPage.classList.add("active");
+        softkeyLeft.innerHTML = "";
+        softkeyRight.innerHTML = "";
         usernameInput.focus();
       }
     });
@@ -819,6 +836,8 @@ button:hover {
             loginPage.classList.remove("active");
             mainPage.classList.add("active");
             softKeysContainer.style.display = "block";
+            softkeyLeft.innerHTML = "";
+            softkeyRight.innerHTML = "Back";
             loadPrivateChats();
             setupPresence();
             registerPushNotifications();
@@ -845,6 +864,8 @@ button:hover {
           loginPage.classList.remove("active");
           mainPage.classList.add("active");
           softKeysContainer.style.display = "block";
+          softkeyLeft.innerHTML = "";
+          softkeyRight.innerHTML = "Back";
           loadPrivateChats();
           setupPresence();
           registerPushNotifications();
@@ -862,9 +883,41 @@ button:hover {
 
       connectedRef.on("value", function (snap) {
         if (snap.val() === true) {
-          presenceRef.set({ online: true, lastSeen: Date.now() });
-          presenceRef.onDisconnect().set({ online: false, lastSeen: Date.now() });
+          presenceRef.set({ online: true, lastSeen: Date.now(), currentChat: currentOpenChat });
+          presenceRef.onDisconnect().set({ online: false, lastSeen: Date.now(), currentChat: null });
         }
+      });
+    }
+
+    function setTypingStatus(user, isTyping) {
+      firebase.database().ref("presence/" + user).update({ typing: isTyping });
+    }
+
+    function showTypingIndicator(partnerName) {
+      var typingRef = firebase.database().ref("presence/" + partnerName);
+      var myPresenceRef = firebase.database().ref("presence/" + username);
+      
+      typingRef.on("value", function (snap) {
+        var data = snap.val();
+        myPresenceRef.once("value", function (mySnap) {
+          var myData = mySnap.val();
+          var typingIndicator = chatBox.querySelector(".typing-indicator");
+          
+          if (data && myData && data.typing && 
+              currentChatType === partnerName && 
+              data.currentChat === username && 
+              myData.currentChat === partnerName) {
+            if (!typingIndicator) {
+              typingIndicator = document.createElement("div");
+              typingIndicator.className = "typing-indicator";
+              typingIndicator.textContent = partnerName + " is typing...";
+              chatBox.appendChild(typingIndicator);
+              chatBox.scrollTop = chatBox.scrollHeight;
+            }
+          } else if (typingIndicator) {
+            chatBox.removeChild(typingIndicator);
+          }
+        });
       });
     }
 
@@ -931,6 +984,16 @@ button:hover {
               if (e.key === "Enter") {
                 openChat(partnerName);
                 markMessagesAsSeen(partnerName, userElement);
+              }
+            };
+
+            userElement.onfocus = function() {
+              softkeyLeft.innerHTML = "Options";
+            };
+
+            userElement.onblur = function() {
+              if (document.activeElement.className !== "user navItem") {
+                softkeyLeft.innerHTML = "";
               }
             };
 
@@ -1070,11 +1133,16 @@ button:hover {
 
     function openChat(chatType) {
       currentChatType = chatType;
+      currentOpenChat = chatType;  // Update current open chat
+      firebase.database().ref("presence/" + username).update({ currentChat: chatType });
+      
       messages = [];
       chatBox.innerHTML = "";
       mainPage.classList.remove("active");
       chatPage.classList.add("active");
       softKeysContainer.style.display = "block";
+      softkeyLeft.innerHTML = "";
+      softkeyRight.innerHTML = "Back";
       processedMessages.clear();
 
       if (chatRef) chatRef.off();
@@ -1207,6 +1275,30 @@ button:hover {
             messages.push({ id: messageId, element: messageContainer });
             chatBox.scrollTop = chatBox.scrollHeight;
 
+            // Add focus handlers for messages and images
+            messageElement.onfocus = function() {
+              softkeyLeft.innerHTML = "Options";
+            };
+            messageElement.onblur = function() {
+              if (document.activeElement.className.indexOf("message") === -1 && 
+                  document.activeElement.tagName !== "IMG") {
+                softkeyLeft.innerHTML = "";
+              }
+            };
+
+            if (data.mediaType === "image") {
+              var img = messageElement.querySelector("img");
+              img.onfocus = function() {
+                softkeyLeft.innerHTML = "Options";
+              };
+              img.onblur = function() {
+                if (document.activeElement.className.indexOf("message") === -1 && 
+                    document.activeElement.tagName !== "IMG") {
+                  softkeyLeft.innerHTML = "";
+                }
+              };
+            }
+
             updateMessageColor(messageId);
           }
         });
@@ -1293,12 +1385,23 @@ button:hover {
           }
         });
 
+        messageInput.addEventListener("input", function () {
+          if (!isBlockedByUser) {
+            setTypingStatus(username, true);
+            if (typingTimeout) clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(function () {
+              setTypingStatus(username, false);
+            }, 2000);
+          }
+        });
+
         sendButton.onclick = function () {
           if (!isBlockedByUser) {
             var message = messageInput.value.trim();
             if (message) {
               sendMessage(message, "text");
               messageInput.value = "";
+              setTypingStatus(username, false);
             }
           }
         };
@@ -1308,6 +1411,8 @@ button:hover {
             sendImage();
           }
         };
+
+        showTypingIndicator(chatType);
       });
     }
 
@@ -1610,6 +1715,7 @@ button:hover {
       }
 
       var activeElement = document.activeElement;
+
       if (isDropdownVisible) {
         if (e.key === "ArrowUp") {
           var items = Array.from(dropdownMenu.children);
@@ -1665,6 +1771,7 @@ button:hover {
           }
           if (messageContainer.querySelector("img")) {
             options.push("Fullscreen");
+            options.push("React");
           }
           showDropdown(options, function (index) {
             var messagesList = Array.from(document.querySelectorAll(".message-container"));
@@ -1686,6 +1793,8 @@ button:hover {
             } else if (options[index] === "Fullscreen") {
               var img = messageContainer.querySelector("img");
               if (img) toggleFullScreen(img);
+            } else if (options[index] === "React") {
+              showEmojiContainer(messageContainer);
             }
           });
         }
@@ -1763,9 +1872,14 @@ button:hover {
           chatPage.classList.remove("active");
           mainPage.classList.add("active");
           softKeysContainer.style.display = "block";
+          softkeyLeft.innerHTML = "";
+          softkeyRight.innerHTML = "Back";
           document.getElementById("searchInput").focus();
           if (chatRef) chatRef.off();
           if (otherChatRef) otherChatRef.off();
+          setTypingStatus(username, false);
+          currentOpenChat = null;  // Clear current chat when leaving
+          firebase.database().ref("presence/" + username).update({ currentChat: null });
         }
       }
 
