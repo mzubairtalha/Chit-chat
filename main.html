@@ -6,7 +6,7 @@
   <title>Chit Chat</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="kaiads.v5.min.js"></script> 
+  <script src="kaiatds.v5.min.js"></script> 
   <style>
 * {
   margin: 0;
@@ -223,6 +223,38 @@ button:hover {
   padding: 2px;  
 }  
 
+.reply-preview {  
+  font-size: 10px;  
+  background: #d1e7ff;  
+  padding: 4px;  
+  border-radius: 4px;  
+  margin-bottom: 4px;  
+  color: #333;  
+  border-left: 3px solid #1e90ff;  
+}  
+
+.reply-input-preview {  
+  font-size: 12px;  
+  background: #f0f8ff;  
+  padding: 4px;  
+  border-radius: 4px;  
+  margin-bottom: 4px;  
+  color: #333;  
+  border-left: 3px solid #ff6f61;  
+  display: none;  
+}  
+
+.seen-dot {  
+  width: 6px;  
+  height: 6px;  
+  background-color: green;  
+  border-radius: 50%;  
+  position: absolute;  
+  bottom: 2px;  
+  right: 2px;  
+  display: none;  
+}  
+
 #messageInputContainer {  
   display: flex;  
   align-items: center;  
@@ -230,6 +262,7 @@ button:hover {
   background-color: #f8f9fa;  
   border-top: 1px solid #ccc;  
   gap: 8px;  
+  flex-direction: column;  
 }  
 
 #imageButton {  
@@ -254,6 +287,7 @@ button:hover {
   border-radius: 4px;  
   background-color: #fff;  
   color: #333;  
+  width: 100%;  
 }  
 
 #sendButton {  
@@ -546,9 +580,12 @@ button:hover {
       <div class="empty-message"></div>
     </div>
     <div id="messageInputContainer">
-      <button id="imageButton" class="navItem" tabindex="3"></button>
-      <input type="text" id="messageInput" class="navItem" placeholder="Enter your message" tabindex="4" />
-      <button id="sendButton" class="navItem" tabindex="5"></button>
+      <div id="replyInputPreview" class="reply-input-preview"></div>
+      <div style="display: flex; width: 100%; gap: 8px;">
+        <button id="imageButton" class="navItem" tabindex="3"></button>
+        <input type="text" id="messageInput" class="navItem" placeholder="Enter your message" tabindex="4" />
+        <button id="sendButton" class="navItem" tabindex="5"></button>
+      </div>
     </div>
   </div>
   <div id="softKeysContainer">
@@ -597,6 +634,7 @@ button:hover {
     var passwordInput = document.getElementById("passwordInput");
     var notificationContainer = document.getElementById("notificationContainer");
     var dropdownMenu = document.getElementById("dropdownMenu");
+    var replyInputPreview = document.getElementById("replyInputPreview");
     var currentChatType = null;
     var messages = [];
     var chatRef = null;
@@ -611,7 +649,8 @@ button:hover {
     var isDropdownVisible = false;
     var lastFocusedElement = null;
     var typingTimeout = null;
-    var currentOpenChat = null;  // Track currently open chat for typing indicator
+    var currentOpenChat = null;
+    var replyingToMessageId = null;
 
     document.addEventListener("DOMContentLoaded", function () {
       var savedBackground = localStorage.getItem("chatBackground");
@@ -887,6 +926,12 @@ button:hover {
           presenceRef.onDisconnect().set({ online: false, lastSeen: Date.now(), currentChat: null });
         }
       });
+
+      setInterval(function() {
+        if (username) {
+          firebase.database().ref("presence/" + username).update({ lastSeen: Date.now() });
+        }
+      }, 60000);
     }
 
     function setTypingStatus(user, isTyping) {
@@ -1075,32 +1120,29 @@ button:hover {
       var senderRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId);
       var receiverRef = firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId);
       
-      return Promise.all([
-        senderRef.once('value'),
-        receiverRef.once('value')
-      ]).then(function (results) {
-        var senderSnap = results[0];
-        var receiverSnap = results[1];
-        var senderData = senderSnap.val();
-        var receiverData = receiverSnap.val();
-        return senderData && receiverData && senderData.seen && receiverData.seen;
+      senderRef.once('value', function(senderSnap) {
+        receiverRef.once('value', function(receiverSnap) {
+          var senderData = senderSnap.val();
+          var receiverData = receiverSnap.val();
+          var bothSeen = senderData && receiverData && senderData.seen && receiverData.seen;
+          var messageElement = document.getElementById("msg-" + messageId);
+          if (messageElement) {
+            var seenDot = messageElement.parentElement.querySelector(".seen-dot");
+            if (bothSeen && senderData.from === username && seenDot) {
+              seenDot.style.display = "block";
+            } else if (seenDot) {
+              seenDot.style.display = "none";
+            }
+          }
+        });
       });
     }
 
     function updateMessageColor(messageId) {
-      checkBothSeen(messageId).then(function (bothSeen) {
-        var messageElement = document.getElementById("msg-" + messageId);
-        if (messageElement) {
-          if (bothSeen) {
-            messageElement.classList.add('seen-by-both');
-          } else {
-            messageElement.classList.remove('seen-by-both');
-          }
-        }
-      });
+      checkBothSeen(messageId);
     }
 
-    function sendMessage(content, type) {
+    function sendMessage(content, type, replyToId) {
       var messageData = {
         from: username,
         timestamp: Date.now(),
@@ -1114,6 +1156,10 @@ button:hover {
         messageData.mediaType = type;
       }
 
+      if (replyToId) {
+        messageData.replyTo = replyToId;
+      }
+
       var senderChatRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType).push();
       var messageId = senderChatRef.key;
       var receiverChatRef = firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId);
@@ -1124,6 +1170,11 @@ button:hover {
       if (type === "text") {
         senderChatRef.update({ seen: false });
       }
+      
+      replyingToMessageId = null;
+      replyInputPreview.style.display = "none";
+      replyInputPreview.innerHTML = "";
+      messageInput.placeholder = "Enter your message";
     }
 
     function formatTimestamp(timestamp) {
@@ -1133,7 +1184,7 @@ button:hover {
 
     function openChat(chatType) {
       currentChatType = chatType;
-      currentOpenChat = chatType;  // Update current open chat
+      currentOpenChat = chatType;
       firebase.database().ref("presence/" + username).update({ currentChat: chatType });
       
       messages = [];
@@ -1192,6 +1243,19 @@ button:hover {
               messageElement.innerHTML = "<span>Message deleted</span>";
             } else if (data.message || data.mediaUrl) {
               messageElement.className = "message " + (data.from === username ? "sent" : "received");
+              
+              if (data.replyTo) {
+                var replyPreview = document.createElement("div");
+                replyPreview.className = "reply-preview";
+                firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + data.replyTo).once("value", function(replySnap) {
+                  var replyData = replySnap.val();
+                  if (replyData) {
+                    replyPreview.textContent = replyData.message ? replyData.message.substring(0, 20) + "..." : "Image";
+                  }
+                });
+                messageElement.appendChild(replyPreview);
+              }
+
               if (data.mediaType === "image") {
                 var img = document.createElement("img");
                 img.src = data.mediaUrl;
@@ -1222,7 +1286,10 @@ button:hover {
               }
             }
 
+            var seenDot = document.createElement("div");
+            seenDot.className = "seen-dot";
             messageContainer.appendChild(messageElement);
+            messageContainer.appendChild(seenDot);
 
             if (!data.deleted && data.reaction) {
               var reactionSpan = document.createElement("span");
@@ -1267,6 +1334,12 @@ button:hover {
                 fullscreenButton.tabIndex = 13;
                 actionContainer.appendChild(fullscreenButton);
               }
+
+              var replyButton = document.createElement("span");
+              replyButton.className = "action-button";
+              replyButton.textContent = "Reply";
+              replyButton.tabIndex = 14;
+              actionContainer.appendChild(replyButton);
               
               messageContainer.appendChild(actionContainer);
             }
@@ -1275,7 +1348,6 @@ button:hover {
             messages.push({ id: messageId, element: messageContainer });
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Add focus handlers for messages and images
             messageElement.onfocus = function() {
               softkeyLeft.innerHTML = "Options";
             };
@@ -1300,6 +1372,16 @@ button:hover {
             }
 
             updateMessageColor(messageId);
+
+            if (data.from !== username && !data.seen) {
+              firebase.database().ref("presence/" + chatType).once("value", function(snap) {
+                var partnerData = snap.val();
+                if (partnerData && partnerData.currentChat === username) {
+                  chatRef.child(messageId).update({ seen: true, seenTimestamp: Date.now() });
+                  otherChatRef.child(messageId).update({ seen: true, seenTimestamp: Date.now() });
+                }
+              });
+            }
           }
         });
 
@@ -1399,7 +1481,7 @@ button:hover {
           if (!isBlockedByUser) {
             var message = messageInput.value.trim();
             if (message) {
-              sendMessage(message, "text");
+              sendMessage(message, "text", replyingToMessageId);
               messageInput.value = "";
               setTypingStatus(username, false);
             }
@@ -1502,7 +1584,7 @@ button:hover {
           uploadFileToCloudinary(file, function (progress) {
             console.log("Upload progress: " + progress + "%");
           }).then(function (url) {
-            sendMessage(url, "image");
+            sendMessage(url, "image", replyingToMessageId);
           }).catch(function (error) {
             console.error("Error uploading image:", error);
           });
@@ -1765,12 +1847,14 @@ button:hover {
         } else if (chatPage.classList.contains("active") && activeElement.className.indexOf("message") !== -1) {
           var messageContainer = activeElement.parentElement;
           var messageId = activeElement.id.replace("msg-", "");
-          var options = ["Delete for Me"];
+          var options = ["Reply", "Delete for Me"];
           if (messageContainer.querySelector(".sent")) {
             options.push("Delete for Everyone");
           }
           if (messageContainer.querySelector("img")) {
             options.push("Fullscreen");
+            options.push("React");
+          } else {
             options.push("React");
           }
           showDropdown(options, function (index) {
@@ -1795,6 +1879,14 @@ button:hover {
               if (img) toggleFullScreen(img);
             } else if (options[index] === "React") {
               showEmojiContainer(messageContainer);
+            } else if (options[index] === "Reply") {
+              replyingToMessageId = messageId;
+              firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId).once("value", function(snap) {
+                var data = snap.val();
+                replyInputPreview.style.display = "block";
+                replyInputPreview.innerHTML = "Replying to: " + (data.message ? data.message.substring(0, 20) + "..." : "Image");
+                messageInput.focus();
+              });
             }
           });
         }
@@ -1834,6 +1926,16 @@ button:hover {
           } else if (activeElement.textContent === "Fullscreen") {
             var img = messageContainer.querySelector("img");
             if (img) toggleFullScreen(img);
+            hideEmojiContainer();
+            hideActionContainer();
+          } else if (activeElement.textContent === "Reply") {
+            replyingToMessageId = messageId;
+            firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId).once("value", function(snap) {
+              var data = snap.val();
+              replyInputPreview.style.display = "block";
+              replyInputPreview.innerHTML = "Replying to: " + (data.message ? data.message.substring(0, 20) + "..." : "Image");
+              messageInput.focus();
+            });
             hideEmojiContainer();
             hideActionContainer();
           }
@@ -1878,8 +1980,9 @@ button:hover {
           if (chatRef) chatRef.off();
           if (otherChatRef) otherChatRef.off();
           setTypingStatus(username, false);
-          currentOpenChat = null;  // Clear current chat when leaving
+          currentOpenChat = null;
           firebase.database().ref("presence/" + username).update({ currentChat: null });
+          messageInput.placeholder = "Enter your message";
         }
       }
 
