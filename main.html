@@ -1545,11 +1545,11 @@ button:hover {
       return new Promise(function (resolve, reject) {
         var formData = new FormData();
         formData.append("file", file);
-        formData.append("upload_preset", "Chitchat");
-        formData.append("cloud_name", "dcv3kn2gu");
+        formData.append("upload_preset", "ml_default");
+        formData.append("cloud_name", "dmtnbvxfk");
 
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "https://api.cloudinary.com/v1_1/dcv3kn2gu/upload", true);
+        xhr.open("POST", "https://api.cloudinary.com/v1_1/dmtnbvxfk/upload", true);
 
         xhr.upload.onprogress = function (e) {
           if (e.lengthComputable) {
