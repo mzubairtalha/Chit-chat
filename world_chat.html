@@ -8,360 +8,180 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script src="kaiads.v5.min.js"></script> <!-- Add KaiAds script -->
   <style>
-,/* General Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern font */
-  background-color: #f4f4f9;
-  color: #333;
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-header {
-  background: linear-gradient(45deg, #ff6f61, #ff9a8b); /* Gradient for header */
-  color: white;
-  text-align: center;
-  padding: 8px; /* Reduced padding */
-  font-size: 14px; /* Smaller font size */
-  font-weight: bold;
-  position: relative;
-  width: 100%;
-  z-index: 10;
-}
+    header {
+      background: linear-gradient(45deg, #ff6f61, #ff9a8b);
+      color: white;
+      text-align: center;
+      padding: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      position: relative;
+      width: 100%;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between; /* To align title and online count */
+      align-items: center;
+    }
 
-.navItem {
-  display: block;
-  width: 90%; /* Increased width for better touch */
-  margin: 8px auto; /* Reduced margin */
-  padding: 8px; /* Reduced padding */
-  font-size: 14px; /* Smaller font size */
-  border-radius: 6px; /* Slightly smaller border radius */
-  border: 1px solid #ccc;
-  background: linear-gradient(145deg, #fff, #e4e4e4); /* Light gradient for nav items */
-  transition: all 0.3s ease;
-}
+    .online-count {
+      font-size: 12px;
+      margin-right: 10px;
+    }
 
-.navItem:focus {
-  outline: 2px solid #007bff;
-  border-color: #007bff;
-}
+    .navItem {
+      display: block;
+      width: 90%;
+      margin: 8px auto;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: linear-gradient(145deg, #fff, #e4e4e4);
+      transition: all 0.3s ease;
+    }
 
-button {
-  background: linear-gradient(45deg, #1e90ff, #00bfff); /* Blue gradient for button */
-  color: black;
-  border: none;
-  cursor: pointer;
-  font-size: 14px; /* Smaller font size */
-  font-weight: bold;
-  padding: 8px 16px; /* Reduced padding */
-  width: 80%; /* Increased width for better touch */
-  border-radius: 6px; /* Slightly smaller border radius */
-  margin-top: 8px; /* Reduced margin */
-  transition: background 0.3s ease;
-}
+    .navItem:focus {
+      outline: 2px solid #007bff;
+      border-color: #007bff;
+    }
 
-button:hover {
-  background: linear-gradient(45deg, #00bfff, #1e90ff); /* Inverted gradient on hover */
-}
+    button {
+      background: linear-gradient(45deg, #1e90ff, #00bfff);
+      color: black;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      padding: 8px 16px;
+      width: 80%;
+      border-radius: 6px;
+      margin-top: 8px;
+      transition: background 0.3s ease;
+    }
 
-button:focus {
-  border: 2px solid yellow;
-}
+    button:hover {
+      background: linear-gradient(45deg, #00bfff, #1e90ff);
+    }
 
-/* Page Layout */
-#mainPage,
-#chatPage {
-  flex: 1;
-  overflow: auto;
-  display: none;
-}
+    button:focus {
+      border: 2px solid yellow;
+    }
 
-#mainPage.active,
-#chatPage.active {
-  display: flex;
-  flex-direction: column;
-}
+    #worldChatPage {
+      flex: 1;
+      overflow: auto;
+      display: none;
+    }
 
-/* Private Chat List */
-#privateChatList {
-  padding: 8px; /* Reduced padding */
-  color: black;
-  font-weight: bold;
-  text-align: center;
-}
+    #worldChatPage.active {
+      display: flex;
+      flex-direction: column;
+    }
 
-#chatListContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 8px; /* Reduced gap */
-}
+    #chatBox {
+      position: relative;
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      background-color: #e9ecef;
+      border-top: 1px solid #ccc;
+    }
 
-.chat-item {
-  padding: 8px; /* Reduced padding */
-  background: linear-gradient(145deg, #ffffff, #f7f7f7); /* Gradient background for chat items */
-  border-radius: 6px; /* Slightly smaller border radius */
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  font-size: 14px; /* Smaller font size */
-  transition: all 0.3s ease;
-}
+    .message {
+      padding: 8px;
+      margin: 6px 0;
+      border-radius: 6px;
+      max-width: 70%;
+      font-size: 12px;
+    }
 
-.chat-item:focus {
-  outline: 2px solid #ff6f61; /* Gradient focus effect */
-  border-color: #ff6f61;
-}
+    .sent {
+      background: linear-gradient(45deg, #1e90ff, #00bfff);
+      color: white;
+      align-self: flex-end;
+    }
 
-.chat-item:hover {
-  background: linear-gradient(145deg, #f0f0f0, #ffffff);
-}
+    .received {
+      background: linear-gradient(45deg, #f0f0f0, #ffffff);
+      color: #333;
+      align-self: flex-start;
+    }
 
-/* Chat Page */
-#chatHeader {
-  font-size: 16px; /* Smaller font size */
-  font-weight: bold;
-  padding: 8px; /* Reduced padding */
-  background: linear-gradient(45deg, #ff6f61, #ff9a8b); /* Gradient for header */
-  color: white;
-  text-align: center;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
+    #messageInputContainer {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      background-color: #f8f9fa;
+      border-top: 1px solid #ccc;
+      gap: 8px;
+    }
 
-#chatBox {
-  position: relative;
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px; /* Reduced padding */
-  background-color: #e9ecef;
-  border-top: 1px solid #ccc;
-}
+    #messageInput {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #fff;
+      color: #333;
+    }
 
-.message {
-  padding: 8px; /* Reduced padding */
-  margin: 6px 0; /* Reduced margin */
-  border-radius: 6px; /* Slightly smaller border radius */
-  max-width: 70%;
-  font-size: 12px; /* Smaller font size */
-}
+    #sendButton {
+      width: 32px;
+      height: 32px;
+      background-image: url('right-pic.png');
+      background-size: cover;
+      background-position: center;
+      border: none;
+      cursor: pointer;
+      margin: 0;
+      align-self: center;
+    }
 
-.sent {
-  background: linear-gradient(45deg, #1e90ff, #00bfff); /* Gradient for sent messages */
-  color: white;
-  align-self: flex-end;
-}
+    #sendButton:focus {
+      border: 2px solid yellow;
+    }
 
-.received {
-  background: linear-gradient(45deg, #f0f0f0, #ffffff); /* Gradient for received messages */
-  color: #333;
-  align-self: flex-start;
-}
-
-#messageInputContainer {
-  display: flex;
-  align-items: center;
-  padding: 8px; /* Reduced padding */
-  background-color: #f8f9fa;
-  border-top: 1px solid #ccc;
-  gap: 8px; /* Reduced gap */
-}
-
-#imageButton {
-  width: 32px; /* Smaller button */
-  height: 32px; /* Smaller button */
-  background-image: url('left-pic.png');
-  background-size: cover;
-  background-position: center;
-  border: none;
-  cursor: pointer;
-}
-
-#messageInput {
-  flex: 1;
-  padding: 8px; /* Reduced padding */
-  font-size: 14px; /* Smaller font size */
-  border: 1px solid #ccc;
-  border-radius: 4px; /* Slightly smaller border radius */
-  background-color: #fff;
-  color: #333;
-}
-
-#sendButton {
-  width: 32px; /* Smaller button */
-  height: 32px; /* Smaller button */
-  background-image: url('right-pic.png'); /* Apki arrow image ka path */
-  background-size: cover;
-  background-position: center;
-  border: none;
-  cursor: pointer;
-  margin: 0; /* Remove any margins */
-  align-self: center; /* Button ko vertically center kare */
-}
-
-#sendButton:focus {
-  border: 2px solid yellow;
-}
-#imageButton:focus {
-  border: 2px solid yellow;
-}
-
-footer.softkey,
-#softkey-left,
-#softkey-center,
-#softkey-right {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-}
-
-#softkey-left {
-    text-align: left;
-    font-size: 15px;
-    color: #fffdfd;
-    padding-left: 0.5rem;
-}
-
-#softkey-center {
-    text-align: center;
-    font-size: 15px;
-    color: #ffffff;
-}
-
-#softkey-right {
-    text-align: right;
-    font-size: 15px;
-    padding-right: 5px;
-    color: #ffffff;
-}
-
-#softKeysContainer {
-    height: 1.1rem;
-    line-height: 1.1rem;
-    width: 100%;
-    background: linear-gradient(45deg, #ff6f61, #ff9a8b);
-    position: fixed;
-    bottom: 0;
-}
-
-/* Animations for Transitions */
-#mainPage,
-#chatPage {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.typing-message {
-    font-style: italic;
-    color: gray;
-    padding: 4px 8px; /* Reduced padding */
-    margin-top: 4px; /* Reduced margin */
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 6px; /* Slightly smaller border radius */
-    width: fit-content;
-    max-width: 80%;
-    position: absolute;  /* Use absolute positioning */
-    bottom: 0;  /* Keep it below the last message */
-    right: 8px; /* Adjust to shift it to the right */
-}
-#mediaDropdown, #voiceRecordingUI {
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 8px; /* Reduced padding */
-  border-radius: 4px; /* Slightly smaller border radius */
-  z-index: 1000;
-}
-
-#mediaDropdown button, #voiceRecordingUI button {
-  display: block;
-  width: 100%;
-  margin: 4px 0; /* Reduced margin */
-  padding: 4px; /* Reduced padding */
-  text-align: left;
-}
-
-#recordingTimer {
-  display: block;
-  text-align: center;
-  margin-top: 8px; /* Reduced margin */
-}
-/* Styles for media messages */
-.message img, .message video, .message audio {
-  max-width: 100%;
-  height: 120px; /* Smaller height */
-  border-radius: 6px; /* Slightly smaller border radius */
-  margin-top: 4px; /* Reduced margin */
-}
-
-/* Styles for upload progress */
-#uploadProgress {
-  font-size: 14px; /* Smaller font size */
-  font-weight: bold;
-  z-index: 1000;
-}
-
-.message img, .message video, .message audio {
-  max-width: 100%;
-  height: 120px; /* Smaller height */
-  border-radius: 6px; /* Slightly smaller border radius */
-  margin-top: 4px; /* Reduced margin */
-}
-
-.message audio {
-  width: 100%;
-}
-/* Basic styling for all messages */
-.message {
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
-  background-color: #f1f1f1;
-  transition: box-shadow 0.3s ease, background-color 0.3s ease;
-}
-
-/* Differentiate sent and received messages */
-.message.sent {
-  background-color: #dcf8c6; /* light green for sent messages */
-  align-self: flex-end;
-}
-
-.message.received {
-  background-color: #ffffff; /* white for received messages */
-  align-self: flex-start;
-}
-
-/* Styling for focused messages */
-.message:focus {
-  outline: none; /* Remove default focus outline */
-  box-shadow: 0 0 10px 2px rgba(0, 123, 255, 0.7);
-  background-color: #e6f7ff; /* Optionally change background on focus */
-}
+    .typing-message {
+      font-style: italic;
+      color: gray;
+      padding: 4px 8px;
+      margin-top: 4px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      width: fit-content;
+      max-width: 80%;
+      position: absolute;
+      bottom: 0;
+      right: 8px;
+    }
   </style>
 </head>
 <body>
   <!-- World Chat Page -->
   <div id="worldChatPage" class="active">
-    <header>World Chat</header>
+    <header>
+      <span>World Chat</span>
+      <span id="onlineCount" class="online-count">Online: 0</span>
+    </header>
     <div id="chatBox">
       <div class="empty-message"></div>
     </div>
@@ -373,16 +193,16 @@ footer.softkey,
   </div>
 
   <script>
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAJDc2kSekkq2V6_JY6D3-bkS9rMlTZyc0",
-  authDomain: "chit-chat-ee0a1.firebaseapp.com",
-  databaseURL: "https://chit-chat-ee0a1-default-rtdb.firebaseio.com",
-  projectId: "chit-chat-ee0a1",
-  storageBucket: "chit-chat-ee0a1.firebasestorage.app",
-  messagingSenderId: "85251006651",
-  appId: "1:85251006651:web:345db7c1c4811a50cdc99e",
-  measurementId: "G-R3PM50QPX6"
+  apiKey: "AIzaSyBF1DEqMmYTSjkhw92jO8dwmrjDt3LWz0w",
+  authDomain: "chit-88926.firebaseapp.com",
+  databaseURL: "https://chit-88926-default-rtdb.firebaseio.com",
+  projectId: "chit-88926",
+  storageBucket: "chit-88926.firebasestorage.app",
+  messagingSenderId: "163683785249",
+  appId: "1:163683785249:web:20fba9367e51ad08c46160",
+  measurementId: "G-THFQBMX1SX"
 };
 
     firebase.initializeApp(firebaseConfig);
@@ -392,9 +212,10 @@ const firebaseConfig = {
     const chatBox = document.getElementById("chatBox");
     const messageInput = document.getElementById("messageInput");
     const typingIndicator = document.getElementById("typingIndicator");
+    const onlineCountElement = document.getElementById("onlineCount");
     let messages = [];
     let typingTimeout;
-    let chatRef = null; // Reference to the current chat
+    let chatRef = null;
 
     // Function to show KaiAd
     function showKaiAd() {
@@ -406,14 +227,9 @@ const firebaseConfig = {
         onready: ad => {
           const previouslyFocusedElement = document.activeElement;
           ad.call('display');
-
-          ad.on('display', () => {
-            document.getElementById("softKeysContainer").style.display = "none";
-          });
-
+          ad.on('display', () => {});
           ad.on('close', () => {
             if (previouslyFocusedElement) previouslyFocusedElement.focus();
-            document.getElementById("softKeysContainer").style.display = "block";
           });
         }
       });
@@ -425,24 +241,22 @@ const firebaseConfig = {
         window.location.href = "main.html";
       } else {
         loadWorldChat();
+        updateOnlineUsers();
+        scheduleChatDeletion();
       }
 
-      // Show ad on page load
       showKaiAd();
-
-      // Show ad every 2 minutes
       setInterval(showKaiAd, 2 * 60 * 1000); // 2 minutes interval
     };
 
     function loadWorldChat() {
-      // Remove existing listener before adding a new one
       if (chatRef) {
         chatRef.off("child_added");
       }
 
       chatRef = firebase.database().ref("worldChat");
 
-      chatRef.orderByChild("timestamp").limitToLast(2).on("child_added", function (snapshot) {
+      chatRef.orderByChild("timestamp").limitToLast(50).on("child_added", function (snapshot) {
         const data = snapshot.val();
         if (data && data.message) {
           const messageElement = document.createElement("div");
@@ -456,17 +270,14 @@ const firebaseConfig = {
         }
       });
 
-      // Focus on message input when chat opens
       setTimeout(function () {
         document.getElementById("messageInput").focus();
       }, 100);
 
-      // Setup typing indicator
       setupTypingIndicator("world", username);
 
       messageInput.addEventListener("input", function () {
         updateTypingStatus("world", username, true);
-
         if (typingTimeout) clearTimeout(typingTimeout);
         typingTimeout = setTimeout(function () {
           updateTypingStatus("world", username, false);
@@ -495,22 +306,70 @@ const firebaseConfig = {
       };
     }
 
-    // Function to handle typing indicator
+    // Function to update online users count
+    function updateOnlineUsers() {
+      const presenceRef = firebase.database().ref("presence");
+      const userRef = presenceRef.child(username);
+
+      // Set user as online
+      userRef.set({ online: true, lastSeen: Date.now() });
+      userRef.onDisconnect().remove(); // Remove user when disconnected
+
+      // Count online users
+      presenceRef.on("value", (snapshot) => {
+        const users = snapshot.val();
+        if (users) {
+          const onlineCount = Object.keys(users).filter(key => users[key].online).length;
+          onlineCountElement.textContent = `Online: ${onlineCount}`;
+        } else {
+          onlineCountElement.textContent = "Online: 0";
+        }
+      });
+
+      // Update last seen every minute to stay active
+      setInterval(() => {
+        userRef.update({ lastSeen: Date.now() });
+      }, 60 * 1000);
+    }
+
+    // Function to delete chats older than 24 hours
+    function deleteOldChats() {
+      const now = Date.now();
+      const twentyFourHoursAgo = now - (24 * 60 * 60 * 1000); // 24 hours in milliseconds
+
+      const chatRef = firebase.database().ref("worldChat");
+      chatRef.orderByChild("timestamp").endAt(twentyFourHoursAgo).once("value", (snapshot) => {
+        const updates = {};
+        snapshot.forEach((child) => {
+          updates[child.key] = null; // Mark for deletion
+        });
+        chatRef.update(updates); // Delete old messages
+      });
+    }
+
+    // Schedule chat deletion at 12 AM daily
+    function scheduleChatDeletion() {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0); // Set to next midnight
+
+      const timeToMidnight = midnight - now;
+      setTimeout(() => {
+        deleteOldChats();
+        setInterval(deleteOldChats, 24 * 60 * 60 * 1000); // Run daily
+      }, timeToMidnight);
+    }
+
+    // Typing indicator functions
     function setupTypingIndicator(chatType, username) {
       const chatBox = document.getElementById("chatBox");
+      const typingIndicatorRef = firebase.database().ref("typingIndicators/world");
 
-      // Determine the correct typing indicator reference
-      const typingIndicatorRef = chatType === "world"
-        ? firebase.database().ref("typingIndicators/world")
-        : firebase.database().ref(`typingIndicators/${chatType}`);
-
-      // Listen for typing indicator changes
       typingIndicatorRef.on("value", function (snapshot) {
         const typingStatus = snapshot.val();
         const existingIndicator = document.getElementById("typingIndicator");
 
         if (typingStatus && typingStatus.isTyping && typingStatus.user !== username) {
-          // Create typing indicator if it doesn't exist
           if (!existingIndicator) {
             const newTypingIndicator = document.createElement("div");
             newTypingIndicator.id = "typingIndicator";
@@ -518,15 +377,11 @@ const firebaseConfig = {
             newTypingIndicator.textContent = `${typingStatus.user} is typing...`;
             chatBox.appendChild(newTypingIndicator);
           } else {
-            // Update existing typing indicator
             existingIndicator.textContent = `${typingStatus.user} is typing...`;
             existingIndicator.style.display = "block";
           }
-
-          // Auto-scroll to make typing indicator visible
           chatBox.scrollTop = chatBox.scrollHeight;
         } else {
-          // Hide typing indicator when user stops typing
           if (existingIndicator) {
             existingIndicator.style.display = "none";
           }
@@ -534,43 +389,28 @@ const firebaseConfig = {
       });
     }
 
-    // Function to update typing status
     function updateTypingStatus(chatType, username, isTyping) {
-      const typingIndicatorRef = chatType === "world"
-        ? firebase.database().ref("typingIndicators/world")
-        : firebase.database().ref(`typingIndicators/${chatType}`);
-
+      const typingIndicatorRef = firebase.database().ref("typingIndicators/world");
       typingIndicatorRef.set({
         user: username,
         isTyping: isTyping
       });
     }
 
-    // SoftRight key to go back to index.html
+    // Navigation and key events
     document.addEventListener("keydown", function (e) {
       if (e.key === "SoftRight") {
         window.location.href = "main.html";
-      }
-    });
-
-    // Scroll feature with keys 2 and 8
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "8") {
-        chatBox.scrollTop += 50; // Scroll down
+      } else if (e.key === "8") {
+        chatBox.scrollTop += 50;
       } else if (e.key === "2") {
-        chatBox.scrollTop -= 50; // Scroll up
-      }
-    });
-
-    // Navigation using arrow keys
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowDown") {
+        chatBox.scrollTop -= 50;
+      } else if (e.key === "ArrowDown") {
         document.getElementById("sendButton").focus();
       } else if (e.key === "ArrowUp") {
         document.getElementById("messageInput").focus();
       }
     });
-
   </script>
 </body>
 </html>
