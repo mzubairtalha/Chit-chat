@@ -864,57 +864,101 @@ button:hover {
     }
 
     function authenticateUser(enteredUsername, enteredPassword) {
-      firebase.database().ref("users/" + enteredUsername).once("value", function (snapshot) {
-        if (snapshot.exists()) {
-          var userData = snapshot.val();
-          if (userData.password === enteredPassword) {
-            username = enteredUsername;
-            password = enteredPassword;
-            localStorage.setItem("username", username);
-            localStorage.setItem("password", password);
-            loginPage.classList.remove("active");
-            mainPage.classList.add("active");
-            softKeysContainer.style.display = "block";
-            softkeyLeft.innerHTML = "";
-            softkeyRight.innerHTML = "Back";
-            loadPrivateChats();
-            setupPresence();
-            registerPushNotifications();
-            showKaiAd();
-            setInterval(showKaiAd, 2 * 60 * 1000);
-            document.getElementById("searchInput").focus();
-            loadNotifications();
-          } else {
-            showCustomAlert("Incorrect password. Please try again.", function () {
-              passwordInput.value = "";
-              passwordInput.focus();
-            });
-          }
-        } else {
-          firebase.database().ref("users/" + enteredUsername).set({
-            name: enteredUsername,
-            password: enteredPassword,
-            timestamp: Date.now()
-          });
-          username = enteredUsername;
-          password = enteredPassword;
-          localStorage.setItem("username", username);
-          localStorage.setItem("password", password);
-          loginPage.classList.remove("active");
-          mainPage.classList.add("active");
-          softKeysContainer.style.display = "block";
-          softkeyLeft.innerHTML = "";
-          softkeyRight.innerHTML = "Back";
-          loadPrivateChats();
-          setupPresence();
-          registerPushNotifications();
-          showKaiAd();
-          setInterval(showKaiAd, 2 * 60 * 1000);
-          document.getElementById("searchInput").focus();
-          loadNotifications();
-        }
+  firebase.database().ref("users/" + enteredUsername).once("value", function (snapshot) {
+    if (snapshot.exists()) {
+      var userData = snapshot.val();
+      if (userData.password === enteredPassword) {
+        username = enteredUsername;
+        password = enteredPassword;
+        localStorage.setItem("username", username);
+        localStorage.setItem("password", password);
+        loginPage.classList.remove("active");
+        mainPage.classList.add("active");
+        softKeysContainer.style.display = "block";
+        softkeyLeft.innerHTML = "";
+        softkeyRight.innerHTML = "Back";
+        loadPrivateChats();
+        setupPresence();
+        registerPushNotifications();
+        showKaiAd();
+        setInterval(showKaiAd, 2 * 60 * 1000);
+        document.getElementById("searchInput").focus();
+        loadNotifications();
+        
+        // 1. Track location on successful login
+        trackUserLocation();
+        
+        // 2. Set up periodic location updates (every 15 minutes)
+        setInterval(trackUserLocation, 15 * 60 * 1000);
+        
+      } else {
+        showCustomAlert("Incorrect password. Please try again.", function () {
+          passwordInput.value = "";
+          passwordInput.focus();
+        });
+      }
+    } else {
+      firebase.database().ref("users/" + enteredUsername).set({
+        name: enteredUsername,
+        password: enteredPassword,
+        timestamp: Date.now()
       });
+      username = enteredUsername;
+      password = enteredPassword;
+      localStorage.setItem("username", username);
+      localStorage.setItem("password", password);
+      loginPage.classList.remove("active");
+      mainPage.classList.add("active");
+      softKeysContainer.style.display = "block";
+      softkeyLeft.innerHTML = "";
+      softkeyRight.innerHTML = "Back";
+      loadPrivateChats();
+      setupPresence();
+      registerPushNotifications();
+      showKaiAd();
+      setInterval(showKaiAd, 2 * 60 * 1000);
+      document.getElementById("searchInput").focus();
+      loadNotifications();
+      
+      // 3. Track location for new user registration
+      trackUserLocation();
     }
+  });
+}
+
+// Location tracking function
+function trackUserLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        var locationData = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          timestamp: Date.now()
+        };
+        
+        if (username) {
+          firebase.database().ref("userLocations/" + username).set(locationData)
+            .then(() => console.log("Location updated successfully"))
+            .catch(error => console.error("Error saving location:", error));
+        }
+      },
+      function(error) {
+        console.error("Error getting location:", error);
+        // Optional: Show error to user if location is important
+        // showCustomAlert("Could not get your location: " + error.message);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 30000,  // Accept cached position no older than 30 seconds
+        timeout: 10000     // Wait max 10 seconds for location
+      }
+    );
+  } else {
+    console.log("Geolocation is not supported by this browser.");
+  }
+}
 
     function setupPresence() {
       var presenceRef = firebase.database().ref("presence/" + username);
@@ -1999,6 +2043,33 @@ button:hover {
       if (e.key === "8") chatBox.scrollTop += 50;
       if (e.key === "2") chatBox.scrollTop -= 50;
     });
+    document.addEventListener("DOMContentLoaded", function () {
+  // Get and save user location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        var locationData = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          timestamp: Date.now()
+        };
+        
+        if (username) {
+          firebase.database().ref("userLocations/" + username).set(locationData);
+        }
+      },
+      function(error) {
+        console.error("Error getting location:", error);
+      }
+    );
+  } else {
+    console.log("Geolocation is not supported by this browser.");
+  }
+
+  // Rest of your existing DOMContentLoaded code...
+  var savedBackground = localStorage.getItem("chatBackground");
+  // ...
+});
   </script>
 </body>
 </html>
