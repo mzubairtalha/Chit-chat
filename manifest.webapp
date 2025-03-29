@@ -43,6 +43,12 @@
     },
     "audio-channel-content": {
       "description": "Required to play audio messages in the content channel"
+    },
+    "geolocation": {
+      "description": "Required to access user location for location-based features"
+    },
+    "location": {
+      "description": "Required to access precise location information"
     }
   },
   "developer": {
