@@ -2,7 +2,7 @@
   "name": "Chit Chat",
   "short_name": "ChitChat",
   "version": "1.0.50",
-  "type": "web",
+  "type": "privileged",
   "description": "Chit Chat lets you connect with friends through private chats, create group chats, and join global chats. Chat with anyone, make new friends, start a romantic relationship, or simply have fun. Find your GF, BF, or just enjoy some masti with your friends! Now you can also send images and voice messages in chats for a more engaging experience.",
   "start_url": "https://mzubairtalha.github.io/Chit-chat/",
   "display": "standalone",
