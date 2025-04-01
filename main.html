@@ -6,7 +6,7 @@
   <title>Chit Chat</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="kaiafds.v5.min.js"></script> 
+  <script src="kaiahds.v5.min.js"></script> 
   <style>
 * {
   margin: 0;
@@ -275,7 +275,17 @@ button:hover {
   cursor: pointer;  
 }  
 
-#imageButton:focus {  
+#videoButton {
+  width: 32px;
+  height: 32px;
+  background-image: url('video-icon.png');
+  background-size: cover;
+  background-position: center;
+  border: none;
+  cursor: pointer;
+}
+
+#imageButton:focus, #videoButton:focus {  
   border: 2px solid #007bff;  
 }  
 
@@ -344,7 +354,14 @@ button:hover {
   margin-top: 4px;  
 }  
 
-.message:focus {  
+.message video {
+  max-width: 100%;
+  height: 120px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+.message:focus {
   outline: none;  
   box-shadow: 0 0 10px 2px rgba(0, 123, 255, 0.7);  
 }  
@@ -549,6 +566,66 @@ button:hover {
 .custom-notification.active {
   display: block;
 }
+
+
+/* Play Icon Styling */
+.play-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.play-icon::before {
+  content: "▶";
+  position: absolute;
+  top: 50%;
+  left: 55%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 18px;
+}
+
+/* Download Progress Styling */
+.download-progress {
+  display: block;
+  font-size: 12px;
+  color: #555;
+  margin-top: 5px;
+}
+
+/* Upload Progress Styling */
+.upload-progress {
+  display: block;
+  font-size: 12px;
+  color: #555;
+  margin: 5px 0;
+  text-align: center;
+}
+
+/* Message Container Adjustments */
+.message-container {
+  position: relative;
+}
+
+/* Fullscreen Media */
+video[style*="position: fixed"],
+img[style*="position: fixed"] {
+  object-fit: contain;
+  max-width: 240px;
+  max-height: 320px;
+}
+
+/* Ensure video stays within bounds in normal view */
+video {
+  max-width: 100%;
+  max-height: 120px;
+}
   </style>
 </head>
 <body>
@@ -560,7 +637,7 @@ button:hover {
       <button id="signInButton" class="navItem" tabindex="3">Sign In</button>
     </div>
   </div>
-
+<div id="footer-status" style="position: fixed; bottom: 0; width: 100%; text-align: center;">Offline</div>
   <div id="mainPage">
     <header>Private Chat</header>
     <input type="text" id="searchInput" class="navItem" placeholder="Search for a user" tabindex="1" />
@@ -583,8 +660,8 @@ button:hover {
       <div id="replyInputPreview" class="reply-input-preview"></div>
       <div style="display: flex; width: 100%; gap: 8px;">
         <button id="imageButton" class="navItem" tabindex="3"></button>
-        <input type="text" id="messageInput" class="navItem" placeholder="Enter your message" tabindex="4" />
-        <button id="sendButton" class="navItem" tabindex="5"></button>
+        <input type="text" id="messageInput" class="navItem" placeholder="Enter your message" tabindex="5" />
+        <button id="sendButton" class="navItem" tabindex="6"></button>
       </div>
     </div>
   </div>
@@ -669,7 +746,6 @@ button:hover {
         softkeyRight.innerHTML = "Back";
         document.getElementById("searchInput").focus();
         loadNotifications();
-        getAndSaveLocation(); // Added location functionality
       } else {
         loginPage.classList.add("active");
         softkeyLeft.innerHTML = "";
@@ -677,48 +753,6 @@ button:hover {
         usernameInput.focus();
       }
     });
-
-    // Function to get and save user's location
-    function getAndSaveLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          function(position) {
-            var locationData = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              timestamp: Date.now()
-            };
-            // Save location to Firebase under user's presence
-            if (username) {
-              firebase.database().ref("presence/" + username).update({
-                location: locationData
-              });
-            }
-          },
-          function(error) {
-            console.error("Error getting location:", error.message);
-            // Save null location if permission denied or error occurs
-            if (username) {
-              firebase.database().ref("presence/" + username).update({
-                location: null
-              });
-            }
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-          }
-        );
-      } else {
-        console.error("Geolocation not supported");
-        if (username) {
-          firebase.database().ref("presence/" + username).update({
-            location: null
-          });
-        }
-      }
-    }
 
     function showCustomAlert(message, callback) {
       isAlertActive = true;
@@ -926,7 +960,6 @@ button:hover {
             setInterval(showKaiAd, 2 * 60 * 1000);
             document.getElementById("searchInput").focus();
             loadNotifications();
-            getAndSaveLocation(); // Added location functionality after successful login
           } else {
             showCustomAlert("Incorrect password. Please try again.", function () {
               passwordInput.value = "";
@@ -955,7 +988,6 @@ button:hover {
           setInterval(showKaiAd, 2 * 60 * 1000);
           document.getElementById("searchInput").focus();
           loadNotifications();
-          getAndSaveLocation(); // Added location functionality after new user registration
         }
       });
     }
@@ -1108,7 +1140,7 @@ button:hover {
               var data = msgSnapshot.val();
               if (!data.seen && data.from === partnerName) {
                 updateUnreadCount();
-                sendPushNotification(data.message || "Image received", partnerName);
+                sendPushNotification(data.message || "Media received", partnerName);
               }
             });
 
@@ -1186,6 +1218,27 @@ button:hover {
       checkBothSeen(messageId);
     }
 
+    function checkVideoLimit(callback) {
+      var today = new Date().toISOString().split('T')[0];
+      var videoCountRef = firebase.database().ref("videoLimits/" + username + "/" + today);
+      videoCountRef.once("value", function(snapshot) {
+        var count = snapshot.val() || 0;
+        if (count < 5) {
+          callback(true, count);
+        } else {
+          callback(false, count);
+        }
+      });
+    }
+
+    function incrementVideoCount() {
+      var today = new Date().toISOString().split('T')[0];
+      var videoCountRef = firebase.database().ref("videoLimits/" + username + "/" + today);
+      videoCountRef.transaction(function(currentCount) {
+        return (currentCount || 0) + 1;
+      });
+    }
+
     function sendMessage(content, type, replyToId) {
       var messageData = {
         from: username,
@@ -1204,15 +1257,31 @@ button:hover {
         messageData.replyTo = replyToId;
       }
 
-      var senderChatRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType).push();
-      var messageId = senderChatRef.key;
-      var receiverChatRef = firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId);
+      if (type === "video") {
+        checkVideoLimit(function(allowed, count) {
+          if (allowed) {
+            var senderChatRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType).push();
+            var messageId = senderChatRef.key;
+            var receiverChatRef = firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId);
 
-      senderChatRef.set(messageData);
-      receiverChatRef.set(messageData);
+            senderChatRef.set(messageData);
+            receiverChatRef.set(messageData);
+            incrementVideoCount();
+          } else {
+            showCustomAlert("You have reached your daily limit of 5 videos.");
+          }
+        });
+      } else {
+        var senderChatRef = firebase.database().ref("privateChats/" + username + "/" + currentChatType).push();
+        var messageId = senderChatRef.key;
+        var receiverChatRef = firebase.database().ref("privateChats/" + currentChatType + "/" + username + "/" + messageId);
 
-      if (type === "text") {
-        senderChatRef.update({ seen: false });
+        senderChatRef.set(messageData);
+        receiverChatRef.set(messageData);
+
+        if (type === "text") {
+          senderChatRef.update({ seen: false });
+        }
       }
       
       replyingToMessageId = null;
@@ -1224,6 +1293,202 @@ button:hover {
     function formatTimestamp(timestamp) {
       var date = new Date(timestamp);
       return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+    }
+
+    // IndexedDB Setup
+    function openIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("ChitChatDB", 1);
+
+        request.onupgradeneeded = function(event) {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains("videos")) {
+            db.createObjectStore("videos", { keyPath: "id" });
+          }
+        };
+
+        request.onsuccess = function(event) {
+          resolve(event.target.result);
+        };
+
+        request.onerror = function(event) {
+          reject(new Error("Failed to open IndexedDB: " + event.target.error));
+        };
+      });
+    }
+
+    function saveVideoToIndexedDB(messageId, base64data) {
+      return new Promise((resolve, reject) => {
+        openIndexedDB().then(db => {
+          const transaction = db.transaction(["videos"], "readwrite");
+          const store = transaction.objectStore("videos");
+          const request = store.put({ id: "video_" + messageId, data: base64data });
+
+          request.onsuccess = function() {
+            resolve();
+          };
+
+          request.onerror = function(event) {
+            reject(new Error("Failed to save video to IndexedDB: " + event.target.error));
+          };
+        }).catch(error => {
+          reject(error);
+        });
+      });
+    }
+
+    function getVideoFromIndexedDB(messageId) {
+      return new Promise((resolve, reject) => {
+        openIndexedDB().then(db => {
+          const transaction = db.transaction(["videos"], "readonly");
+          const store = transaction.objectStore("videos");
+          const request = store.get("video_" + messageId);
+
+          request.onsuccess = function(event) {
+            if (event.target.result) {
+              resolve(event.target.result.data);
+            } else {
+              resolve(null);
+            }
+          };
+
+          request.onerror = function(event) {
+            reject(new Error("Failed to retrieve video from IndexedDB: " + event.target.error));
+          };
+        }).catch(error => {
+          reject(error);
+        });
+      });
+    }
+
+    function downloadVideo(url, messageId, callback) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", url, true);
+      xhr.responseType = "blob";
+
+      var progressSpan = document.createElement("span");
+      progressSpan.className = "download-progress";
+      progressSpan.textContent = "Downloading: 0%";
+      var messageElement = document.getElementById("msg-" + messageId);
+      if (messageElement) {
+        messageElement.appendChild(progressSpan);
+      }
+
+      var downloadTimeout = setTimeout(function() {
+        xhr.abort();
+        progressSpan.textContent = "Download Timeout";
+        showCustomAlert("Download timed out. Please try again.");
+        console.error("Download timed out for messageId:", messageId);
+      }, 30000);
+
+      xhr.onprogress = function(e) {
+        if (e.lengthComputable) {
+          var percent = Math.round((e.loaded / e.total) * 100);
+          progressSpan.textContent = "Downloading: " + percent + "%";
+        }
+      };
+
+      xhr.onload = function() {
+        clearTimeout(downloadTimeout);
+        if (xhr.status === 200) {
+          var blob = xhr.response;
+          var reader = new FileReader();
+          
+          var readerTimeout = setTimeout(function() {
+            progressSpan.textContent = "Conversion Timeout";
+            showCustomAlert("Failed to convert video: Conversion timed out.");
+            console.error("FileReader timed out for messageId:", messageId);
+          }, 20000);
+
+          reader.onloadend = function() {
+            clearTimeout(readerTimeout);
+            var base64data = reader.result;
+            saveVideoToIndexedDB(messageId, base64data).then(() => {
+              progressSpan.textContent = "Downloaded";
+              console.log("Video downloaded and saved to IndexedDB for messageId:", messageId);
+              if (callback) {
+                callback(base64data);
+              }
+            }).catch(error => {
+              progressSpan.textContent = "Storage Failed";
+              showCustomAlert("Failed to save video: " + error.message);
+              console.error("Error saving video to IndexedDB for messageId:", messageId, error);
+            });
+          };
+
+          reader.onerror = function() {
+            clearTimeout(readerTimeout);
+            progressSpan.textContent = "Conversion Failed";
+            showCustomAlert("Failed to convert video: Conversion error.");
+            console.error("Error converting video to base64 for messageId:", messageId, reader.error);
+          };
+
+          reader.readAsDataURL(blob);
+        } else {
+          progressSpan.textContent = "Download Failed";
+          showCustomAlert("Failed to download video: HTTP status " + xhr.status);
+          console.error("Download failed with status:", xhr.status, "for messageId:", messageId);
+        }
+      };
+
+      xhr.onerror = function() {
+        clearTimeout(downloadTimeout);
+        progressSpan.textContent = "Download Failed";
+        showCustomAlert("Failed to download video: Network error.");
+        console.error("Network error during download for messageId:", messageId);
+      };
+
+      xhr.onabort = function() {
+        console.error("Download aborted for messageId:", messageId);
+      };
+
+      xhr.send();
+    }
+
+    function toggleFullScreen(element) {
+      if (element.style.position === "fixed") {
+        element.style.position = "";
+        element.style.top = "";
+        element.style.left = "";
+        element.style.transform = "";
+        element.style.width = element.tagName === "VIDEO" ? "100" : "";
+        element.style.height = element.tagName === "VIDEO" ? "120" : "";
+        element.style.zIndex = "";
+        element.style.backgroundColor = "";
+        if (element.tagName === "VIDEO") {
+          element.pause();
+        }
+      } else {
+        element.style.position = "fixed";
+        element.style.top = "50%";
+        element.style.left = "50%";
+        element.style.transform = "translate(-50%, -50%)";
+        element.style.width = "240px";
+        element.style.height = "320px";
+        element.style.zIndex = "9999";
+        element.style.backgroundColor = "black";
+        element.style.objectFit = "contain";
+        if (element.tagName === "VIDEO") {
+          if (!element.src) {
+            showCustomAlert("Cannot play video: Source not set.");
+            console.error("Video element has no source:", element);
+            return;
+          }
+          element.addEventListener("canplay", function onCanPlay() {
+            element.removeEventListener("canplay", onCanPlay);
+            if (typeof element.play === "function") {
+              element.play().catch(function(error) {
+                console.error("Error playing video in fullscreen:", error);
+                showCustomAlert("Failed to play video: " + error.message);
+              });
+            } else {
+              showCustomAlert("Cannot play video: Play function is not available.");
+              console.error("Video element.play is not a function:", element);
+            }
+          }, { once: true });
+          element.load(); // Ensure the video is loaded
+        }
+      }
     }
 
     function openChat(chatType) {
@@ -1294,7 +1559,7 @@ button:hover {
                 firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + data.replyTo).once("value", function(replySnap) {
                   var replyData = replySnap.val();
                   if (replyData) {
-                    replyPreview.textContent = replyData.message ? replyData.message.substring(0, 20) + "..." : "Image";
+                    replyPreview.textContent = replyData.message ? replyData.message.substring(0, 20) + "..." : (replyData.mediaType === "image" ? "Image" : "Video");
                   }
                 });
                 messageElement.appendChild(replyPreview);
@@ -1309,6 +1574,44 @@ button:hover {
                 img.onerror = function () { img.alt = "Failed to load image"; };
                 img.tabIndex = 9;
                 messageElement.appendChild(img);
+              } else if (data.mediaType === "video") {
+                var video = document.createElement("video");
+                getVideoFromIndexedDB(messageId).then(localVideoData => {
+                  if (localVideoData) {
+                    video.src = localVideoData;
+                  } else {
+                    video.src = data.mediaUrl;
+                  }
+                }).catch(error => {
+                  console.error("Error retrieving video from IndexedDB for messageId:", messageId, error);
+                  video.src = data.mediaUrl; // Fallback to URL
+                });
+                video.width = 100;
+                video.height = 120;
+                video.controls = false;
+                video.tabIndex = 9;
+
+                var playIcon = document.createElement("div");
+                playIcon.className = "play-icon";
+                messageElement.appendChild(video);
+                messageElement.appendChild(playIcon);
+
+                getVideoFromIndexedDB(messageId).then(localVideoData => {
+                  if (!localVideoData) {
+                    var statusSpan = document.createElement("span");
+                    statusSpan.className = "download-progress";
+                    statusSpan.textContent = "Not Downloaded";
+                    messageElement.appendChild(statusSpan);
+                  }
+                });
+
+                video.onerror = function() {
+                  console.error("Error loading video for messageId:", messageId);
+                  var errorSpan = messageElement.querySelector(".download-progress") || document.createElement("span");
+                  errorSpan.className = "download-progress";
+                  errorSpan.textContent = "Failed to load video";
+                  messageElement.appendChild(errorSpan);
+                };
               } else {
                 var textSpan = document.createElement("span");
                 textSpan.textContent = data.from + ": " + data.message;
@@ -1325,7 +1628,7 @@ button:hover {
               if (data.from !== username) {
                 var receivedTimestampSpan = document.createElement("span");
                 receivedTimestampSpan.className = "received-timestamp";
-                receivedTimestampSpan.textContent = formatSendTime(data.timestamp);
+                receivedTimestampSpan.textContent = "Received: " + formatSendTime(data.timestamp);
                 messageElement.appendChild(receivedTimestampSpan);
               }
             }
@@ -1371,7 +1674,7 @@ button:hover {
                 actionContainer.appendChild(deleteForEveryoneButton);
               }
 
-              if (data.mediaType === "image") {
+              if (data.mediaType === "image" || data.mediaType === "video") {
                 var fullscreenButton = document.createElement("span");
                 fullscreenButton.className = "action-button";
                 fullscreenButton.textContent = "Fullscreen";
@@ -1397,7 +1700,8 @@ button:hover {
             };
             messageElement.onblur = function() {
               if (document.activeElement.className.indexOf("message") === -1 && 
-                  document.activeElement.tagName !== "IMG") {
+                  document.activeElement.tagName !== "IMG" && 
+                  document.activeElement.tagName !== "VIDEO") {
                 softkeyLeft.innerHTML = "";
               }
             };
@@ -1409,7 +1713,20 @@ button:hover {
               };
               img.onblur = function() {
                 if (document.activeElement.className.indexOf("message") === -1 && 
-                    document.activeElement.tagName !== "IMG") {
+                    document.activeElement.tagName !== "IMG" && 
+                    document.activeElement.tagName !== "VIDEO") {
+                  softkeyLeft.innerHTML = "";
+                }
+              };
+            } else if (data.mediaType === "video") {
+              var video = messageElement.querySelector("video");
+              video.onfocus = function() {
+                softkeyLeft.innerHTML = "Options";
+              };
+              video.onblur = function() {
+                if (document.activeElement.className.indexOf("message") === -1 && 
+                    document.activeElement.tagName !== "IMG" && 
+                    document.activeElement.tagName !== "VIDEO") {
                   softkeyLeft.innerHTML = "";
                 }
               };
@@ -1454,9 +1771,10 @@ button:hover {
                 reactionSpan.textContent = data.reaction;
               }
               if (data.seen && data.seenTimestamp && data.from === username) {
-                var timestampSpan = messageElement.querySelector(".seen-timestamp");
+                var timestampSpan = document.getElementById("seen-timestamp-" + messageId);
                 if (!timestampSpan) {
                   timestampSpan = document.createElement("span");
+                  timestampSpan.id = "seen-timestamp-" + messageId;
                   timestampSpan.className = "seen-timestamp";
                   messageElement.appendChild(timestampSpan);
                 }
@@ -1534,7 +1852,13 @@ button:hover {
 
         imageButton.onclick = function () {
           if (!isBlockedByUser) {
-            sendImage();
+            showDropdown(["Image", "Video"], function(index) {
+              if (index === 0) {
+                sendImage();
+              } else if (index === 1) {
+                sendVideo();
+              }
+            });
           }
         };
 
@@ -1563,78 +1887,141 @@ button:hover {
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function toggleFullScreen(img) {
-      if (img.style.position === "fixed") {
-        img.style.position = "";
-        img.style.top = "";
-        img.style.left = "";
-        img.style.transform = "";
-        img.style.width = "";
-        img.style.height = "";
-        img.style.zIndex = "";
-        img.style.backgroundColor = "";
-      } else {
-        img.style.position = "fixed";
-        img.style.top = "50%";
-        img.style.left = "50%";
-        img.style.transform = "translate(-50%, -50%)";
-        img.style.width = "240px";
-        img.style.height = "320px";
-        img.style.zIndex = "9999";
-        img.style.backgroundColor = "black";
-      }
-    }
+    function uploadFileToCloudinary(file, onProgress, onComplete, onError) {
+      var formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "ml_default");
+      formData.append("cloud_name", "dmtnbvxfk");
 
-    function uploadFileToCloudinary(file, onProgress) {
-      return new Promise(function (resolve, reject) {
-        var formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "ml_default");
-        formData.append("cloud_name", "dmtnbvxfk");
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://api.cloudinary.com/v1_1/dmtnbvxfk/upload", true);
 
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "https://api.cloudinary.com/v1_1/dmtnbvxfk/upload", true);
+      var progressSpan = document.createElement("span");
+      progressSpan.className = "upload-progress";
+      progressSpan.textContent = "Uploading: 0%";
+      chatBox.appendChild(progressSpan);
+      chatBox.scrollTop = chatBox.scrollHeight;
 
-        xhr.upload.onprogress = function (e) {
-          if (e.lengthComputable) {
-            onProgress((e.loaded / e.total) * 100);
-          }
-        };
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+          var percent = Math.round((e.loaded / e.total) * 100);
+          progressSpan.textContent = "Uploading: " + percent + "%";
+          if (onProgress) onProgress(percent);
+        }
+      };
 
-        xhr.onload = function () {
-          if (xhr.status === 200) {
-            var response = JSON.parse(xhr.responseText);
-            resolve(response.secure_url);
-          } else {
-            reject(new Error("Upload failed"));
-          }
-        };
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          var response = JSON.parse(xhr.responseText);
+          progressSpan.textContent = "Uploaded";
+          setTimeout(function() {
+            chatBox.removeChild(progressSpan);
+          }, 2000);
+          if (onComplete) onComplete(response.secure_url);
+        } else {
+          progressSpan.textContent = "Upload Failed";
+          if (onError) onError(new Error("Upload failed"));
+        }
+      };
 
-        xhr.onerror = function () {
-          reject(new Error("Upload failed"));
-        };
+      xhr.onerror = function () {
+        progressSpan.textContent = "Upload Failed";
+        if (onError) onError(new Error("Upload failed"));
+      };
 
-        xhr.send(formData);
-      });
+      xhr.send(formData);
     }
 
     function sendImage() {
-      var input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = function (e) {
-        var file = e.target.files[0];
-        if (file) {
-          uploadFileToCloudinary(file, function (progress) {
-            console.log("Upload progress: " + progress + "%");
-          }).then(function (url) {
-            sendMessage(url, "image", replyingToMessageId);
-          }).catch(function (error) {
-            console.error("Error uploading image:", error);
-          });
-        }
-      };
-      input.click();
+      if ('MozActivity' in window) {
+        var activity = new MozActivity({
+          name: "pick",
+          data: {
+            type: ["image/*"]
+          }
+        });
+
+        activity.onsuccess = function() {
+          var file = this.result.blob;
+          if (file) {
+            uploadFileToCloudinary(file, 
+              function(progress) {
+                console.log("Image upload progress: " + progress + "%");
+              },
+              function(url) {
+                sendMessage(url, "image", replyingToMessageId);
+              },
+              function(error) {
+                console.error("Error uploading image:", error);
+                showCustomAlert("Failed to upload image.");
+              }
+            );
+          }
+        };
+
+        activity.onerror = function() {
+          console.error("Error picking image:", this.error);
+          showCustomAlert("Unable to pick an image.");
+        };
+      } else {
+        var input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = function (e) {
+          var file = e.target.files[0];
+          if (file) {
+            uploadFileToCloudinary(file, 
+              function(progress) {
+                console.log("Image upload progress: " + progress + "%");
+              },
+              function(url) {
+                sendMessage(url, "image", replyingToMessageId);
+              },
+              function(error) {
+                console.error("Error uploading image:", error);
+                showCustomAlert("Failed to upload image.");
+              }
+            );
+          }
+        };
+        input.click();
+      }
+    }
+
+    function sendVideo() {
+      if ('MozActivity' in window) {
+        var activity = new MozActivity({
+          name: "pick",
+          data: {
+            type: ["video/*"]
+          }
+        });
+
+        activity.onsuccess = function() {
+          var file = this.result.blob;
+          if (file) {
+            uploadFileToCloudinary(file, 
+              function(progress) {
+                console.log("Video upload progress: " + progress + "%");
+              },
+              function(url) {
+                sendMessage(url, "video", replyingToMessageId);
+              },
+              function(error) {
+                console.error("Error uploading video:", error);
+                showCustomAlert("Failed to upload video.");
+              }
+            );
+          }
+        };
+
+        activity.onerror = function() {
+          console.error("Error picking video:", this.error);
+          showCustomAlert("Unable to pick a video.");
+        };
+      } else {
+        showCustomAlert("Video picking is only supported on KaiOS devices with MozActivity.");
+      }
     }
 
     document.getElementById("searchButton").onclick = function () {
@@ -1681,25 +2068,65 @@ button:hover {
     };
 
     changeBackgroundButton.onclick = function () {
-      var input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = function (e) {
-        var file = e.target.files[0];
-        if (file) {
-          uploadFileToCloudinary(file, function (progress) {
-            console.log("Background upload progress: " + progress + "%");
-          }).then(function (url) {
-            chatBox.style.backgroundImage = "url(" + url + ")";
-            chatBox.style.backgroundSize = "cover";
-            chatBox.style.backgroundPosition = "center";
-            localStorage.setItem("chatBackground", url);
-          }).catch(function (error) {
-            console.error("Error uploading background image:", error);
-          });
-        }
-      };
-      input.click();
+      if ('MozActivity' in window) {
+        var activity = new MozActivity({
+          name: "pick",
+          data: {
+            type: ["image/*"]
+          }
+        });
+
+        activity.onsuccess = function() {
+          var file = this.result.blob;
+          if (file) {
+            uploadFileToCloudinary(file, 
+              function(progress) {
+                console.log("Background upload progress: " + progress + "%");
+              },
+              function(url) {
+                chatBox.style.backgroundImage = "url(" + url + ")";
+                chatBox.style.backgroundSize = "cover";
+                chatBox.style.backgroundPosition = "center";
+                localStorage.setItem("chatBackground", url);
+              },
+              function(error) {
+                console.error("Error uploading background:", error);
+                showCustomAlert("Failed to set background.");
+              }
+            );
+          }
+        };
+
+        activity.onerror = function() {
+          console.error("Error picking background:", this.error);
+          showCustomAlert("Unable to pick a background image.");
+        };
+      } else {
+        var input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.onchange = function (e) {
+          var file = e.target.files[0];
+          if (file) {
+            uploadFileToCloudinary(file, 
+              function(progress) {
+                console.log("Background upload progress: " + progress + "%");
+              },
+              function(url) {
+                chatBox.style.backgroundImage = "url(" + url + ")";
+                chatBox.style.backgroundSize = "cover";
+                chatBox.style.backgroundPosition = "center";
+                localStorage.setItem("chatBackground", url);
+              },
+              function(error) {
+                console.error("Error uploading background image:", error);
+                showCustomAlert("Failed to set background.");
+              }
+            );
+          }
+        };
+        input.click();
+      }
     };
 
     changeThemeButton.onclick = function () {
@@ -1868,6 +2295,21 @@ button:hover {
         return;
       }
 
+      if (activeElement.tagName === "VIDEO" && activeElement.style.position === "fixed") {
+        if (e.key === "Enter") {
+          if (activeElement.paused) {
+            toggleFullScreen(activeElement); // This will handle the play logic
+          } else {
+            activeElement.pause();
+          }
+        } else if (e.key === "SoftRight") {
+          toggleFullScreen(activeElement);
+          var messageContainer = activeElement.parentElement.parentElement;
+          messageContainer.querySelector(".message").focus();
+        }
+        return;
+      }
+
       if (e.key === "SoftLeft") {
         if (isDropdownVisible) {
           hideDropdown();
@@ -1898,6 +2340,16 @@ button:hover {
           if (messageContainer.querySelector("img")) {
             options.push("Fullscreen");
             options.push("React");
+          } else if (messageContainer.querySelector("video")) {
+            getVideoFromIndexedDB(messageId).then(localVideoData => {
+              if (localVideoData) {
+                options.push("Play");
+              } else {
+                options.push("Download");
+              }
+              options.push("Fullscreen");
+              options.push("React");
+            });
           } else {
             options.push("React");
           }
@@ -1919,8 +2371,8 @@ button:hover {
               else if (prevMessage) prevMessage.focus();
               else document.getElementById("messageInput").focus();
             } else if (options[index] === "Fullscreen") {
-              var img = messageContainer.querySelector("img");
-              if (img) toggleFullScreen(img);
+              var media = messageContainer.querySelector("img") || messageContainer.querySelector("video");
+              if (media) toggleFullScreen(media);
             } else if (options[index] === "React") {
               showEmojiContainer(messageContainer);
             } else if (options[index] === "Reply") {
@@ -1928,8 +2380,27 @@ button:hover {
               firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId).once("value", function(snap) {
                 var data = snap.val();
                 replyInputPreview.style.display = "block";
-                replyInputPreview.innerHTML = "Replying to: " + (data.message ? data.message.substring(0, 20) + "..." : "Image");
+                replyInputPreview.innerHTML = "Replying to: " + (data.message ? data.message.substring(0, 20) + "..." : (data.mediaType === "image" ? "Image" : "Video"));
                 messageInput.focus();
+              });
+            } else if (options[index] === "Download") {
+              firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId).once("value", function(snap) {
+                var data = snap.val();
+                downloadVideo(data.mediaUrl, messageId, function(localData) {
+                  var video = messageContainer.querySelector("video");
+                  video.src = localData;
+                  console.log("Video src set after download for messageId:", messageId);
+                  toggleFullScreen(video);
+                });
+              });
+            } else if (options[index] === "Play") {
+              var video = messageContainer.querySelector("video");
+              getVideoFromIndexedDB(messageId).then(localVideoData => {
+                if (localVideoData) {
+                  video.src = localVideoData;
+                  console.log("Playing video from IndexedDB for messageId:", messageId);
+                  toggleFullScreen(video);
+                }
               });
             }
           });
@@ -1968,8 +2439,8 @@ button:hover {
             else if (prevMessage) prevMessage.focus();
             else document.getElementById("messageInput").focus();
           } else if (activeElement.textContent === "Fullscreen") {
-            var img = messageContainer.querySelector("img");
-            if (img) toggleFullScreen(img);
+            var media = messageContainer.querySelector("img") || messageContainer.querySelector("video");
+            if (media) toggleFullScreen(media);
             hideEmojiContainer();
             hideActionContainer();
           } else if (activeElement.textContent === "Reply") {
@@ -1977,7 +2448,7 @@ button:hover {
             firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId).once("value", function(snap) {
               var data = snap.val();
               replyInputPreview.style.display = "block";
-              replyInputPreview.innerHTML = "Replying to: " + (data.message ? data.message.substring(0, 20) + "..." : "Image");
+              replyInputPreview.innerHTML = "Replying to: " + (data.message ? data.message.substring(0, 20) + "..." : (data.mediaType === "image" ? "Image" : "Video"));
               messageInput.focus();
             });
             hideEmojiContainer();
@@ -1986,7 +2457,27 @@ button:hover {
         } else if (activeElement.className.indexOf("message") !== -1) {
           var messageContainer = activeElement.parentElement;
           if (messageContainer.querySelector("img")) {
-            toggleFullScreen(messageContainer.querySelector("img"));
+            var img = messageContainer.querySelector("img");
+            toggleFullScreen(img);
+          } else if (messageContainer.querySelector("video")) {
+            var video = messageContainer.querySelector("video");
+            var messageId = activeElement.id.replace("msg-", "");
+            getVideoFromIndexedDB(messageId).then(localVideoData => {
+              if (localVideoData) {
+                video.src = localVideoData;
+                console.log("Playing video from IndexedDB on Enter for messageId:", messageId);
+                toggleFullScreen(video);
+              } else {
+                firebase.database().ref("privateChats/" + username + "/" + currentChatType + "/" + messageId).once("value", function(snap) {
+                  var data = snap.val();
+                  downloadVideo(data.mediaUrl, messageId, function(localData) {
+                    video.src = localData;
+                    console.log("Video src set after download on Enter for messageId:", messageId);
+                    toggleFullScreen(video);
+                  });
+                });
+              }
+            });
           } else {
             showEmojiContainer(messageContainer);
           }
@@ -2044,5 +2535,5 @@ button:hover {
       if (e.key === "2") chatBox.scrollTop -= 50;
     });
   </script>
-</body>
-</html>
+  </body>
+  </html>
